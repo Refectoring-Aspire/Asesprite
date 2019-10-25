@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.a
 *.o
 *.lib
@@ -14,3 +15,37 @@
 
 # CMake output
 build
+=======
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+>>>>>>> 5c2d9fc7e8e41eea004c51b89c9abd2f5c5c49a4
