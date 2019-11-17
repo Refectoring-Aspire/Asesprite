@@ -130,30 +130,35 @@ public:
   {
     ++filter_locks;
   }
+
   ~LockFilters()
   {
     ASSERT(filter_locks > 0);
     --filter_locks;
 
-    //**refactor**// nope
+    //**refactor**// 
     if (filter_locks == 0)
     {
       // Clear empty filters
       for (Filters &msg_filter : msg_filters)
       {
-        for (auto it = msg_filter.begin(); it != msg_filter.end();)
-        {
-          Filter *filter = *it;
-          if (filter->widget == nullptr)
-          {
-            delete filter;
-            it = msg_filter.erase(it);
-          }
-          else
-          {
-            ++it;
-          }
-        }
+        clearEmptyFilters(msg_filters)
+      }
+    }
+  }
+
+  clearEmptyFilters(Filters *msg_filter ){
+    for (auto it = msg_filter.begin(); it != msg_filter.end();)
+    {
+      Filter *filter = *it;
+      if (filter->widget == nullptr)
+      {
+        delete filter;
+        it = msg_filter.erase(it);
+      }
+      else
+      {
+        ++it;
       }
     }
   }
