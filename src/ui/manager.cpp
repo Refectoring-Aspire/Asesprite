@@ -150,7 +150,8 @@ public:
   
 };
 
-} // anonymous namespace
+} 
+
 clearEmptyFilters(Filters *msg_filter ){
     for (auto it = msg_filter.begin(); it != msg_filter.end();)
     {
@@ -161,11 +162,12 @@ clearEmptyFilters(Filters *msg_filter ){
         it = msg_filter.erase(it);
       }
       else
-      {
-        ++it;
-      }
+        {
+          ++it;
+        }
     }
-  }
+  }// anonymous namespace
+
 // static
 bool Manager::widgetAssociatedToManager(Widget *widget)
 {
@@ -424,26 +426,28 @@ void Manager::generateMessagesFromOSEvents()
   }
 }
 //**
-void Manager::checkEventType(Event osEvent)
+
+void display(Message message){
+Message *msg = new Message(message);
+    msg->setRecipient(this);
+    msg->setPropagateToChildren(true);
+    enqueueMessage(msg);
+}
+
+void checkEventType(Event osEvent)
 {
   switch (osEvent.type())
   {
 
   case os::Event::CloseDisplay:
   {
-    Message *msg = new Message(kCloseDisplayMessage);
-    msg->setRecipient(this);
-    msg->setPropagateToChildren(true);
-    enqueueMessage(msg);
+    display(kCloseDisplayMessage);
     break;
   }
 
   case os::Event::ResizeDisplay:
   {
-    Message *msg = new Message(kResizeDisplayMessage);
-    msg->setRecipient(this);
-    msg->setPropagateToChildren(true);
-    enqueueMessage(msg);
+    display(kResizeDisplayMessage);
     break;
   }
 
@@ -512,11 +516,12 @@ void Manager::checkEventType(Event osEvent)
     m_mouseButtons = (MouseButtons)((int)m_mouseButtons | (int)pressedButton);
     _internal_set_mouse_buttons(m_mouseButtons);
 
-    handleMouseDown(
+    handleMouseAction(
         osEvent.position(),
         pressedButton,
         osEvent.modifiers(),
-        osEvent.pointerType());
+        osEvent.pointerType(),
+        'MouseDown');
     break;
   }
 
@@ -526,32 +531,38 @@ void Manager::checkEventType(Event osEvent)
     m_mouseButtons = (MouseButtons)((int)m_mouseButtons & ~(int)releasedButton);
     _internal_set_mouse_buttons(m_mouseButtons);
 
-    handleMouseUp(
+    handleMouseAction(
         osEvent.position(),
         releasedButton,
         osEvent.modifiers(),
-        osEvent.pointerType());
+        osEvent.pointerType(),
+        'MouseUp');
     break;
   }
 
   case os::Event::MouseDoubleClick:
   {
     MouseButtons clickedButton = mouse_buttons_from_os_to_ui(osEvent);
-    handleMouseDoubleClick(
+    handleMouseAction(
         osEvent.position(),
         clickedButton,
         osEvent.modifiers(),
-        osEvent.pointerType());
+        osEvent.pointerType(),
+        'MouseDoubleClick');
     break;
   }
 
   case os::Event::MouseWheel:
   {
-    handleMouseWheel(osEvent.position(), m_mouseButtons,
-                     osEvent.modifiers(),
-                     osEvent.pointerType(),
-                     osEvent.wheelDelta(),
-                     osEvent.preciseWheel());
+    enqueueMessage(newMouseMessage(
+      kMouseWheelMessage,
+      (capture_widget ? capture_widget : mouse_widget),
+      osEvent.position(), 
+      osEvent.pointerType(), 
+      m_mouseButtons, 
+      osEvent.modifiers(),
+      osEvent.wheelDelta(),
+      osEvent.preciseWheel()));
     break;
   }
 
@@ -618,67 +629,94 @@ void Manager::handleMouseMove(const gfx::Point &mousePos,
           modifiers));
 }
 
-void Manager::handleMouseDown(const gfx::Point &mousePos,
-                              MouseButtons mouseButtons,
-                              KeyModifiers modifiers,
-                              PointerType pointerType)
-{
-  handleWindowZOrder();
 
-  enqueueMessage(
-      newMouseMessage(
-          kMouseDownMessage,
-          (capture_widget ? capture_widget : mouse_widget),
-          mousePos,
-          pointerType,
-          mouseButtons,
-          modifiers));
-}
-
-void Manager::handleMouseUp(const gfx::Point &mousePos,
-                            MouseButtons mouseButtons,
-                            KeyModifiers modifiers,
-                            PointerType pointerType)
-{
-  enqueueMessage(
-      newMouseMessage(
-          kMouseUpMessage,
-          (capture_widget ? capture_widget : mouse_widget),
-          mousePos,
-          pointerType,
-          mouseButtons,
-          modifiers));
-}
-
-void Manager::handleMouseDoubleClick(const gfx::Point &mousePos,
-                                     MouseButtons mouseButtons,
-                                     KeyModifiers modifiers,
-                                     PointerType pointerType)
-{
-  Widget *dst = (capture_widget ? capture_widget : mouse_widget);
-  if (dst)
-  {
-    enqueueMessage(
-        newMouseMessage(
-            kDoubleClickMessage,
-            dst, mousePos, pointerType,
-            mouseButtons, modifiers));
-  }
-}
-
-void Manager::handleMouseWheel(const gfx::Point &mousePos,
+//**
+void Manager::handleMouseAction(const gfx::Point &mousePos,
                                MouseButtons mouseButtons,
                                KeyModifiers modifiers,
                                PointerType pointerType,
-                               const gfx::Point &wheelDelta,
-                               bool preciseWheel)
+                               string actionType)
 {
+  if (actionType=="MouseDown"){
+      handleWindowZOrder();
+      message=kMouseDownMessage;
+  }
+  else if(actionType=="MouseUp"){
+      message=kMouseUpMessage;
+  }
+  else if(actionType=="MouseDoubleClick"){
+      message=kMouseUpMessage;
+  }
   enqueueMessage(newMouseMessage(
-      kMouseWheelMessage,
+      message,
       (capture_widget ? capture_widget : mouse_widget),
-      mousePos, pointerType, mouseButtons, modifiers,
-      wheelDelta, preciseWheel));
+      mousePos, 
+      pointerType, 
+      mouseButtons, 
+      modifiers));
 }
+
+// void Manager::handleMouseDown(const gfx::Point &mousePos,
+//                               MouseButtons mouseButtons,
+//                               KeyModifiers modifiers,
+//                               PointerType pointerType)
+// {
+//   handleWindowZOrder();
+
+//   enqueueMessage(
+//       newMouseMessage(
+//           kMouseDownMessage,
+//           (capture_widget ? capture_widget : mouse_widget),
+//           mousePos,
+//           pointerType,
+//           mouseButtons,
+//           modifiers));
+// }
+
+// void Manager::handleMouseUp(const gfx::Point &mousePos,
+//                             MouseButtons mouseButtons,
+//                             KeyModifiers modifiers,
+//                             PointerType pointerType)
+// {
+//   enqueueMessage(
+//       newMouseMessage(
+//           kMouseUpMessage,
+//           (capture_widget ? capture_widget : mouse_widget),
+//           mousePos,
+//           pointerType,
+//           mouseButtons,
+//           modifiers));
+// }
+
+// void Manager::handleMouseDoubleClick(const gfx::Point &mousePos,
+//                                      MouseButtons mouseButtons,
+//                                      KeyModifiers modifiers,
+//                                      PointerType pointerType)
+// {
+//   Widget *dst = (capture_widget ? capture_widget : mouse_widget);
+//   if (dst)
+//   {
+//     enqueueMessage(
+//         newMouseMessage(
+//             kDoubleClickMessage,
+//             dst, mousePos, pointerType,
+//             mouseButtons, modifiers));
+//   }
+// }
+
+// void Manager::handleMouseWheel(const gfx::Point &mousePos,
+//                                MouseButtons mouseButtons,
+//                                KeyModifiers modifiers,
+//                                PointerType pointerType,
+//                                const gfx::Point &wheelDelta,
+//                                bool preciseWheel)
+// {
+//   enqueueMessage(newMouseMessage(
+//       kMouseWheelMessage,
+//       (capture_widget ? capture_widget : mouse_widget),
+//       mousePos, pointerType, mouseButtons, modifiers,
+//       wheelDelta, preciseWheel));
+// }
 
 void Manager::handleTouchMagnify(const gfx::Point &mousePos,
                                  const KeyModifiers modifiers,
