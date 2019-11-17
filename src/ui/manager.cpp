@@ -147,7 +147,11 @@ public:
     }
   }
 
-  clearEmptyFilters(Filters *msg_filter ){
+  
+};
+
+} // anonymous namespace
+clearEmptyFilters(Filters *msg_filter ){
     for (auto it = msg_filter.begin(); it != msg_filter.end();)
     {
       Filter *filter = *it;
@@ -162,10 +166,6 @@ public:
       }
     }
   }
-};
-
-} // anonymous namespace
-
 // static
 bool Manager::widgetAssociatedToManager(Widget *widget)
 {
