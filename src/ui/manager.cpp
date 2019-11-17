@@ -1268,8 +1268,6 @@ bool Manager::onProcessMessage(Message *msg)
     break;
 
   case kKeyDownMessage:
-    //**
-    continue;
   case kKeyUpMessage:
   {
     KeyMessage *keymsg = static_cast<KeyMessage *>(msg);
@@ -1292,17 +1290,6 @@ bool Manager::onProcessMessage(Message *msg)
           win->isDesktop())
         break;
     }
-
-    // Check the focus movement for foreground (non-desktop) windows.
-    //   if (win && win->isForeground() )
-    //   {
-    //     if (msg->type() == kKeyDownMessage)
-    //       processFocusMovementMessage(msg);
-    //     return true;
-    //   }
-    //   else
-    //     return false;
-    // }
 
     if (win && win->isForeground() && msg->type() == kKeyDownMessage)
     {
