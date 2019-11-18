@@ -516,14 +516,17 @@ void checkEventType(Event osEvent)
     m_mouseButtons = (MouseButtons)((int)m_mouseButtons | (int)pressedButton);
     _internal_set_mouse_buttons(m_mouseButtons);
 
-    handleMouseAction(
-        osEvent.position(),
-        pressedButton,
-        osEvent.modifiers(),
-        osEvent.pointerType(),
-        'MouseDown');
+    handleWindowZOrder();
+    enqueueMessage(newMouseMessage(
+      kMouseDownMessage,
+      (capture_widget ? capture_widget : mouse_widget),
+      osEvent.position(),
+      osEvent.pointerType(),
+      pressedButton, 
+      osEvent.modifiers()));
     break;
   }
+
 
   case os::Event::MouseUp:
   {
@@ -531,24 +534,28 @@ void checkEventType(Event osEvent)
     m_mouseButtons = (MouseButtons)((int)m_mouseButtons & ~(int)releasedButton);
     _internal_set_mouse_buttons(m_mouseButtons);
 
-    handleMouseAction(
-        osEvent.position(),
-        releasedButton,
-        osEvent.modifiers(),
-        osEvent.pointerType(),
-        'MouseUp');
+    enqueueMessage(newMouseMessage(
+      kMouseUpMessage,
+      (capture_widget ? capture_widget : mouse_widget),
+      osEvent.position(),
+      osEvent.pointerType(),
+      releasedButton, 
+      osEvent.modifiers()));
     break;
   }
 
   case os::Event::MouseDoubleClick:
   {
     MouseButtons clickedButton = mouse_buttons_from_os_to_ui(osEvent);
-    handleMouseAction(
-        osEvent.position(),
-        clickedButton,
-        osEvent.modifiers(),
-        osEvent.pointerType(),
-        'MouseDoubleClick');
+     Widget *dst = (capture_widget ? capture_widget : mouse_widget);
+  if (dst)
+    enqueueMessage(newMouseMessage(
+      kDoubleClickMessage,
+      dst,
+      osEvent.position(),
+      osEvent.pointerType(),
+      clickedButton, 
+      osEvent.modifiers()));
     break;
   }
 
@@ -630,31 +637,35 @@ void Manager::handleMouseMove(const gfx::Point &mousePos,
 }
 
 
+
 //**
-void Manager::handleMouseAction(const gfx::Point &mousePos,
-                               MouseButtons mouseButtons,
-                               KeyModifiers modifiers,
-                               PointerType pointerType,
-                               string actionType)
-{
-  if (actionType=="MouseDown"){
-      handleWindowZOrder();
-      message=kMouseDownMessage;
-  }
-  else if(actionType=="MouseUp"){
-      message=kMouseUpMessage;
-  }
-  else if(actionType=="MouseDoubleClick"){
-      message=kMouseUpMessage;
-  }
-  enqueueMessage(newMouseMessage(
-      message,
-      (capture_widget ? capture_widget : mouse_widget),
-      mousePos, 
-      pointerType, 
-      mouseButtons, 
-      modifiers));
-}
+// void Manager::handleMouseAction(const gfx::Point &mousePos,
+//                                MouseButtons mouseButtons,
+//                                KeyModifiers modifiers,
+//                                PointerType pointerType,
+//                                string actionType)
+// {
+//   if (actionType=="MouseDown"){
+//       handleWindowZOrder();
+//       message=kMouseDownMessage;
+//   }
+//   else if(actionType=="MouseUp"){
+//       message=kMouseUpMessage;
+//   }
+//   else if(actionType=="MouseDoubleClick"){
+//       message=kDoubleClickMessage;
+//   }
+//   enqueueMessage(newMouseMessage(
+//       message,
+//       (capture_widget ? capture_widget : mouse_widget),
+//       mousePos, 
+//       pointerType, 
+//       mouseButtons, 
+//       modifiers));
+// }
+
+//**
+
 
 // void Manager::handleMouseDown(const gfx::Point &mousePos,
 //                               MouseButtons mouseButtons,
@@ -863,7 +874,40 @@ Widget *Manager::getCapture()
 {
   return capture_widget;
 }
+//**
+void Manager::fetchFocus(){
+  auto msg = new Message(kFocusLeaveMessage);
+  msg->setRecipient(focus_widget);
+  msg->setPropagateToParent(true);
+  msg->setCommonAncestor(commonAncestor);
+  enqueueMessage(msg);
 
+  // Remove HAS_FOCUS from all hierarchy
+  auto a = focus_widget;
+  while (a && a != commonAncestor)
+  {
+    a->disableFlags(HAS_FOCUS);
+    a = a->parent();
+  }
+}
+
+void Manager::putFocus(){
+  auto msg = new Message(kFocusEnterMessage);
+  msg->setRecipient(widget);
+  msg->setPropagateToParent(true);
+  msg->setCommonAncestor(commonAncestor);
+  enqueueMessage(msg);
+  // Add HAS_FOCUS to all hierarchy
+  auto a = focus_widget;
+  while (a && a != commonAncestor)
+  {
+    if (a->hasFlags(FOCUS_STOP))
+      a->enableFlags(HAS_FOCUS);
+      a = a->parent();
+  }
+}
+
+//**
 void Manager::setFocus(Widget *widget)
 {
   if ((focus_widget != widget) && (!(widget) || (!(widget->hasFlags(DISABLED)) && !(widget->hasFlags(HIDDEN)) && !(widget->hasFlags(DECORATIVE)) && someParentIsFocusStop(widget))))
@@ -873,39 +917,14 @@ void Manager::setFocus(Widget *widget)
     // Fetch the focus
     if (focus_widget && focus_widget != commonAncestor)
     {
-      auto msg = new Message(kFocusLeaveMessage);
-      msg->setRecipient(focus_widget);
-      msg->setPropagateToParent(true);
-      msg->setCommonAncestor(commonAncestor);
-      enqueueMessage(msg);
-
-      // Remove HAS_FOCUS from all hierarchy
-      auto a = focus_widget;
-      while (a && a != commonAncestor)
-      {
-        a->disableFlags(HAS_FOCUS);
-        a = a->parent();
-      }
+      fetchFocus();
     }
 
     // Put the focus
     focus_widget = widget;
     if (widget)
     {
-      auto msg = new Message(kFocusEnterMessage);
-      msg->setRecipient(widget);
-      msg->setPropagateToParent(true);
-      msg->setCommonAncestor(commonAncestor);
-      enqueueMessage(msg);
-
-      // Add HAS_FOCUS to all hierarchy
-      auto a = focus_widget;
-      while (a && a != commonAncestor)
-      {
-        if (a->hasFlags(FOCUS_STOP))
-          a->enableFlags(HAS_FOCUS);
-        a = a->parent();
-      }
+      putFocus();
     }
   }
 }
