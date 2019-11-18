@@ -273,59 +273,10 @@ bool Entry::onProcessMessage(Message* msg)
         EntryCmd cmd = EntryCmd::NoOp;
         KeyMessage* keymsg = static_cast<KeyMessage*>(msg);
         KeyScancode scancode = keymsg->scancode();
-
-        switch (scancode) {
-
-          case kKeyLeft:
-            if (msg->ctrlPressed() || msg->altPressed())
-              cmd = EntryCmd::BackwardWord;
-            else if (msg->cmdPressed())
-              cmd = EntryCmd::BeginningOfLine;
-            else
-              cmd = EntryCmd::BackwardChar;
-            break;
-
-          case kKeyRight:
-            if (msg->ctrlPressed() || msg->altPressed())
-              cmd = EntryCmd::ForwardWord;
-            else if (msg->cmdPressed())
-              cmd = EntryCmd::EndOfLine;
-            else
-              cmd = EntryCmd::ForwardChar;
-            break;
-
-          case kKeyHome:
-            cmd = EntryCmd::BeginningOfLine;
-            break;
-
-          case kKeyEnd:
-            cmd = EntryCmd::EndOfLine;
-            break;
-
-          case kKeyDel:
-            if (msg->shiftPressed())
-              cmd = EntryCmd::Cut;
-            else if (msg->ctrlPressed())
-              cmd = EntryCmd::DeleteForwardToEndOfLine;
-            else
-              cmd = EntryCmd::DeleteForward;
-            break;
-
-          case kKeyInsert:
-            if (msg->shiftPressed())
-              cmd = EntryCmd::Paste;
-            else if (msg->ctrlPressed())
-              cmd = EntryCmd::Copy;
-            break;
-
-          case kKeyBackspace:
-            if (msg->ctrlPressed())
-              cmd = EntryCmd::DeleteBackwardWord;
-            else
-              cmd = EntryCmd::DeleteBackward;
-            break;
-
-          default:
+			// keyscancode
+			
+		keyscancode(scancode)
+        
             // Map common macOS/Windows shortcuts for Cut/Copy/Paste/Select all
 #if defined __APPLE__
             if (msg->onlyCmdPressed())
@@ -441,6 +392,62 @@ bool Entry::onProcessMessage(Message* msg)
   return Widget::onProcessMessage(msg);
 }
 
+
+void entry::keyscancode(){
+	switch (scancode) {
+
+          case kKeyLeft:
+            if (msg->ctrlPressed() || msg->altPressed())
+              cmd = EntryCmd::BackwardWord;
+            else if (msg->cmdPressed())
+              cmd = EntryCmd::BeginningOfLine;
+            else
+              cmd = EntryCmd::BackwardChar;
+            break;
+
+          case kKeyRight:
+            if (msg->ctrlPressed() || msg->altPressed())
+              cmd = EntryCmd::ForwardWord;
+            else if (msg->cmdPressed())
+              cmd = EntryCmd::EndOfLine;
+            else
+              cmd = EntryCmd::ForwardChar;
+            break;
+
+          case kKeyHome:
+            cmd = EntryCmd::BeginningOfLine;
+            break;
+
+          case kKeyEnd:
+            cmd = EntryCmd::EndOfLine;
+            break;
+
+          case kKeyDel:
+            if (msg->shiftPressed())
+              cmd = EntryCmd::Cut;
+            else if (msg->ctrlPressed())
+              cmd = EntryCmd::DeleteForwardToEndOfLine;
+            else
+              cmd = EntryCmd::DeleteForward;
+            break;
+
+          case kKeyInsert:
+            if (msg->shiftPressed())
+              cmd = EntryCmd::Paste;
+            else if (msg->ctrlPressed())
+              cmd = EntryCmd::Copy;
+            break;
+
+          case kKeyBackspace:
+            if (msg->ctrlPressed())
+              cmd = EntryCmd::DeleteBackwardWord;
+            else
+              cmd = EntryCmd::DeleteBackward;
+            break;
+
+          default:
+	
+}
 // static
 gfx::Size Entry::sizeHintWithText(Entry* entry,
                                   const std::string& text)
