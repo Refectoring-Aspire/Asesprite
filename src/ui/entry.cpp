@@ -278,50 +278,52 @@ bool Entry::onProcessMessage(Message* msg)
 		cmd = keyscancode(scancode)
         
             // Map common macOS/Windows shortcuts for Cut/Copy/Paste/Select all
-#if defined __APPLE__
-            if (msg->onlyCmdPressed())
-#else
-            if (msg->onlyCtrlPressed())
-#endif
-            {
-              switch (scancode) {
-                case kKeyX: cmd = EntryCmd::Cut; break;
-                case kKeyC: cmd = EntryCmd::Copy; break;
-                case kKeyV: cmd = EntryCmd::Paste; break;
-                case kKeyA: cmd = EntryCmd::SelectAll; break;
-              }
-            }
-            break;
-        }
 
-        if (cmd == EntryCmd::NoOp) {
-          if (keymsg->unicodeChar() >= 32) {
-            executeCmd(EntryCmd::InsertChar, keymsg->unicodeChar(),
-                       (msg->shiftPressed()) ? true: false);
-
-            // Select dead-key
-            if (keymsg->isDeadKey()) {
-              if (lastCaretPos() < m_maxsize)
-                selectText(m_caret-1, m_caret);
-            }
-            return true;
-          }
-          // Consume all key down of modifiers only, e.g. so the user
-          // can press first "Ctrl" key, and then "Ctrl+C"
-          // combination.
-          else if (keymsg->scancode() >= kKeyFirstModifierScancode) {
-            return true;
-          }
-          else {
-            break;              // Propagate to manager
+//bad formating
+  #if defined __APPLE__
+      if (msg->onlyCmdPressed())
+  #else
+      if (msg->onlyCtrlPressed())
+  #endif
+      {
+        switch (scancode) {
+          case kKeyX: cmd = EntryCmd::Cut; break;
+          case kKeyC: cmd = EntryCmd::Copy; break;
+          case kKeyV: cmd = EntryCmd::Paste; break;
+          case kKeyA: cmd = EntryCmd::SelectAll; break;
           }
         }
-
-        executeCmd(cmd, keymsg->unicodeChar(),
-                   (msg->shiftPressed()) ? true: false);
-        return true;
+        break;
       }
-      break;
+
+      if (cmd == EntryCmd::NoOp) {
+        if (keymsg->unicodeChar() >= 32) {
+          executeCmd(EntryCmd::InsertChar, keymsg->unicodeChar(),
+                      (msg->shiftPressed()) ? true: false);
+
+          // Select dead-key
+          if (keymsg->isDeadKey()) {
+            if (lastCaretPos() < m_maxsize)
+              selectText(m_caret-1, m_caret);
+          }
+          return true;
+        }
+        // Consume all key down of modifiers only, e.g. so the user
+        // can press first "Ctrl" key, and then "Ctrl+C"
+        // combination.
+        else if (keymsg->scancode() >= kKeyFirstModifierScancode) {
+          return true;
+        }
+        else {
+          break;              // Propagate to manager
+        }
+      }
+
+      executeCmd(cmd, keymsg->unicodeChar(),
+                  (msg->shiftPressed()) ? true: false);
+      return true;
+        }
+        break;
 
     case kMouseDownMessage:
       captureMouse();
@@ -394,60 +396,60 @@ bool Entry::onProcessMessage(Message* msg)
 
 
 void entry::keyscancode(const std::string& scancode){
-	switch (scancode) {
+	  switch (scancode) {
 
-          case kKeyLeft:
-            if (msg->ctrlPressed() || msg->altPressed())
-              cmd = EntryCmd::BackwardWord;
-            else if (msg->cmdPressed())
-              cmd = EntryCmd::BeginningOfLine;
-            else
-              cmd = EntryCmd::BackwardChar;
-            break;
+      case kKeyLeft:
+        if (msg->ctrlPressed() || msg->altPressed())
+          cmd = EntryCmd::BackwardWord;
+        else if (msg->cmdPressed())
+          cmd = EntryCmd::BeginningOfLine;
+        else
+          cmd = EntryCmd::BackwardChar;
+        break;
 
-          case kKeyRight:
-            if (msg->ctrlPressed() || msg->altPressed())
-              cmd = EntryCmd::ForwardWord;
-            else if (msg->cmdPressed())
-              cmd = EntryCmd::EndOfLine;
-            else
-              cmd = EntryCmd::ForwardChar;
-            break;
+      case kKeyRight:
+        if (msg->ctrlPressed() || msg->altPressed())
+          cmd = EntryCmd::ForwardWord;
+        else if (msg->cmdPressed())
+          cmd = EntryCmd::EndOfLine;
+        else
+          cmd = EntryCmd::ForwardChar;
+        break;
 
-          case kKeyHome:
-            cmd = EntryCmd::BeginningOfLine;
-            break;
+      case kKeyHome:
+        cmd = EntryCmd::BeginningOfLine;
+        break;
 
-          case kKeyEnd:
-            cmd = EntryCmd::EndOfLine;
-            break;
+      case kKeyEnd:
+        cmd = EntryCmd::EndOfLine;
+        break;
 
-          case kKeyDel:
-            if (msg->shiftPressed())
-              cmd = EntryCmd::Cut;
-            else if (msg->ctrlPressed())
-              cmd = EntryCmd::DeleteForwardToEndOfLine;
-            else
-              cmd = EntryCmd::DeleteForward;
-            break;
+      case kKeyDel:
+        if (msg->shiftPressed())
+          cmd = EntryCmd::Cut;
+        else if (msg->ctrlPressed())
+          cmd = EntryCmd::DeleteForwardToEndOfLine;
+        else
+          cmd = EntryCmd::DeleteForward;
+        break;
 
-          case kKeyInsert:
-            if (msg->shiftPressed())
-              cmd = EntryCmd::Paste;
-            else if (msg->ctrlPressed())
-              cmd = EntryCmd::Copy;
-            break;
+      case kKeyInsert:
+        if (msg->shiftPressed())
+          cmd = EntryCmd::Paste;
+        else if (msg->ctrlPressed())
+          cmd = EntryCmd::Copy;
+        break;
 
-          case kKeyBackspace:
-            if (msg->ctrlPressed())
-              cmd = EntryCmd::DeleteBackwardWord;
-            else
-              cmd = EntryCmd::DeleteBackward;
-            break;
+      case kKeyBackspace:
+        if (msg->ctrlPressed())
+          cmd = EntryCmd::DeleteBackwardWord;
+        else
+          cmd = EntryCmd::DeleteBackward;
+        break;
 
-          default:
+      default:
 
-        return cmd;
+    return cmd;
 }
 // static
 gfx::Size Entry::sizeHintWithText(Entry* entry,
