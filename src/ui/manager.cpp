@@ -1688,7 +1688,7 @@ bool Manager::sendMessageToWidget(Message *msg, Widget *widget)
       {
         m_display->invalidateRegion(
             gfx::Region(gfx::Rect(0, 0, display_w(), display_h())));
-        // TODO m_display->update() ??
+        // to-do m_display->update() ??
       }
 
       base::this_thread::sleep_for(0.002);
@@ -1760,7 +1760,7 @@ void Manager::onInvalidateRegion(const gfx::Region &region)
   // desktop window).
   if (!withDesktop)
   {
-    // TODO we should be able to modify m_updateRegion directly here,
+    // to-do we should be able to modify m_updateRegion directly here,
     // so we avoid the getDrawableRegion() call from
     // Widget::onInvalidateRegion().
     Widget::onInvalidateRegion(reg1);
@@ -1924,7 +1924,7 @@ void Manager::broadcastKeyMsg(Message *msg)
                             Focus Movement
  ***********************************************************************/
 
-// TODO rewrite this function, it is based in an old code from the
+// to-do rewrite this function, it is based in an old code from the
 //      Allegro library GUI code
 void Manager::createList(vector<Widget *> list, Widget *it)
 {
