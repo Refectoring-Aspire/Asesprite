@@ -275,7 +275,7 @@ bool Entry::onProcessMessage(Message* msg)
         KeyScancode scancode = keymsg->scancode();
 			// keyscancode
 			
-		keyscancode(scancode)
+		cmd = keyscancode(scancode)
         
             // Map common macOS/Windows shortcuts for Cut/Copy/Paste/Select all
 #if defined __APPLE__
@@ -393,7 +393,7 @@ bool Entry::onProcessMessage(Message* msg)
 }
 
 
-void entry::keyscancode(){
+void entry::keyscancode(const std::string& scancode){
 	switch (scancode) {
 
           case kKeyLeft:
@@ -446,7 +446,8 @@ void entry::keyscancode(){
             break;
 
           default:
-	
+
+        return cmd;
 }
 // static
 gfx::Size Entry::sizeHintWithText(Entry* entry,
