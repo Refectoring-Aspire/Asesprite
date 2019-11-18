@@ -136,7 +136,7 @@ public:
     ASSERT(filter_locks > 0);
     --filter_locks;
 
-    //**refactor**// 
+    //**refactor**//
     if (filter_locks == 0)
     {
       // Clear empty filters
@@ -146,27 +146,26 @@ public:
       }
     }
   }
-
-  
 };
 
-} 
+} // namespace
 
-clearEmptyFilters(Filters *msg_filter ){
-    for (auto it = msg_filter.begin(); it != msg_filter.end();)
+clearEmptyFilters(Filters *msg_filter)
+{
+  for (auto it = msg_filter.begin(); it != msg_filter.end();)
+  {
+    Filter *filter = *it;
+    if (filter->widget == nullptr)
     {
-      Filter *filter = *it;
-      if (filter->widget == nullptr)
-      {
-        delete filter;
-        it = msg_filter.erase(it);
-      }
-      else
-        {
-          ++it;
-        }
+      delete filter;
+      it = msg_filter.erase(it);
     }
-  }// anonymous namespace
+    else
+    {
+      ++it;
+    }
+  }
+} // anonymous namespace
 
 // static
 bool Manager::widgetAssociatedToManager(Widget *widget)
@@ -384,15 +383,15 @@ void Manager::generateMessagesFromOSEvents()
   os::Event osEvent;
 
   //**
-  bool canWait=true;
+  bool canWait = true;
   // for (;;)
   while (canWait)
   {
     // to-do Add timers to laf::os library so we can wait for then in
     //      the OS message loop.
     canWait = (msg_queue.empty() &&
-                    redrawState == RedrawState::Normal &&
-                    !Timer::haveRunningTimers());
+               redrawState == RedrawState::Normal &&
+               !Timer::haveRunningTimers());
 
     if (canWait && used_msg_queue.empty())
       collectGarbage();
@@ -427,18 +426,18 @@ void Manager::generateMessagesFromOSEvents()
 }
 //**
 
-void display(Message message){
-Message *msg = new Message(message);
-    msg->setRecipient(this);
-    msg->setPropagateToChildren(true);
-    enqueueMessage(msg);
+void display(Message message)
+{
+  Message *msg = new Message(message);
+  msg->setRecipient(this);
+  msg->setPropagateToChildren(true);
+  enqueueMessage(msg);
 }
 
 void checkEventType(Event osEvent)
 {
   switch (osEvent.type())
   {
-
   case os::Event::CloseDisplay:
   {
     display(kCloseDisplayMessage);
@@ -518,15 +517,14 @@ void checkEventType(Event osEvent)
 
     handleWindowZOrder();
     enqueueMessage(newMouseMessage(
-      kMouseDownMessage,
-      (capture_widget ? capture_widget : mouse_widget),
-      osEvent.position(),
-      osEvent.pointerType(),
-      pressedButton, 
-      osEvent.modifiers()));
+        kMouseDownMessage,
+        (capture_widget ? capture_widget : mouse_widget),
+        osEvent.position(),
+        osEvent.pointerType(),
+        pressedButton,
+        osEvent.modifiers()));
     break;
   }
-
 
   case os::Event::MouseUp:
   {
@@ -535,41 +533,41 @@ void checkEventType(Event osEvent)
     _internal_set_mouse_buttons(m_mouseButtons);
 
     enqueueMessage(newMouseMessage(
-      kMouseUpMessage,
-      (capture_widget ? capture_widget : mouse_widget),
-      osEvent.position(),
-      osEvent.pointerType(),
-      releasedButton, 
-      osEvent.modifiers()));
+        kMouseUpMessage,
+        (capture_widget ? capture_widget : mouse_widget),
+        osEvent.position(),
+        osEvent.pointerType(),
+        releasedButton,
+        osEvent.modifiers()));
     break;
   }
 
   case os::Event::MouseDoubleClick:
   {
     MouseButtons clickedButton = mouse_buttons_from_os_to_ui(osEvent);
-     Widget *dst = (capture_widget ? capture_widget : mouse_widget);
-  if (dst)
-    enqueueMessage(newMouseMessage(
-      kDoubleClickMessage,
-      dst,
-      osEvent.position(),
-      osEvent.pointerType(),
-      clickedButton, 
-      osEvent.modifiers()));
+    Widget *dst = (capture_widget ? capture_widget : mouse_widget);
+    if (dst)
+      enqueueMessage(newMouseMessage(
+          kDoubleClickMessage,
+          dst,
+          osEvent.position(),
+          osEvent.pointerType(),
+          clickedButton,
+          osEvent.modifiers()));
     break;
   }
 
   case os::Event::MouseWheel:
   {
     enqueueMessage(newMouseMessage(
-      kMouseWheelMessage,
-      (capture_widget ? capture_widget : mouse_widget),
-      osEvent.position(), 
-      osEvent.pointerType(), 
-      m_mouseButtons, 
-      osEvent.modifiers(),
-      osEvent.wheelDelta(),
-      osEvent.preciseWheel()));
+        kMouseWheelMessage,
+        (capture_widget ? capture_widget : mouse_widget),
+        osEvent.position(),
+        osEvent.pointerType(),
+        m_mouseButtons,
+        osEvent.modifiers(),
+        osEvent.wheelDelta(),
+        osEvent.preciseWheel()));
     break;
   }
 
@@ -636,8 +634,6 @@ void Manager::handleMouseMove(const gfx::Point &mousePos,
           modifiers));
 }
 
-
-
 //**
 // void Manager::handleMouseAction(const gfx::Point &mousePos,
 //                                MouseButtons mouseButtons,
@@ -658,14 +654,13 @@ void Manager::handleMouseMove(const gfx::Point &mousePos,
 //   enqueueMessage(newMouseMessage(
 //       message,
 //       (capture_widget ? capture_widget : mouse_widget),
-//       mousePos, 
-//       pointerType, 
-//       mouseButtons, 
+//       mousePos,
+//       pointerType,
+//       mouseButtons,
 //       modifiers));
 // }
 
 //**
-
 
 // void Manager::handleMouseDown(const gfx::Point &mousePos,
 //                               MouseButtons mouseButtons,
@@ -875,7 +870,8 @@ Widget *Manager::getCapture()
   return capture_widget;
 }
 //**
-void Manager::fetchFocus(){
+void Manager::fetchFocus()
+{
   auto msg = new Message(kFocusLeaveMessage);
   msg->setRecipient(focus_widget);
   msg->setPropagateToParent(true);
@@ -891,7 +887,8 @@ void Manager::fetchFocus(){
   }
 }
 
-void Manager::putFocus(){
+void Manager::putFocus()
+{
   auto msg = new Message(kFocusEnterMessage);
   msg->setRecipient(widget);
   msg->setPropagateToParent(true);
@@ -903,7 +900,7 @@ void Manager::putFocus(){
   {
     if (a->hasFlags(FOCUS_STOP))
       a->enableFlags(HAS_FOCUS);
-      a = a->parent();
+    a = a->parent();
   }
 }
 
@@ -1932,6 +1929,54 @@ void Manager::createList(vector<Widget *> list, Widget *it)
     list.push_back(it);
 }
 
+// Who have the focus
+Window Manager::checkFocusHolder()
+{
+  if (focus_widget)
+  {
+    return focus_widget->window();
+  }
+  else if (!this->children().empty())
+  {
+    return this->getTopWindow();
+  }
+}
+
+void Manager::checkKeyPressed()
+{
+  // Depending on the pressed key...
+  switch (static_cast<KeyMessage *>(msg)->scancode())
+  {
+
+  case kKeyTab:
+    // Reverse tab
+    if ((msg->modifiers() & (kKeyShiftModifier | kKeyCtrlModifier | kKeyAltModifier)) != 0)
+    {
+      focus = list[count - 1];
+    }
+    // Normal tab
+    else if (count > 1)
+    {
+      focus = list[1];
+    }
+    ret = true;
+    break;
+
+  // Arrow keys *****
+  case kKeyLeft:
+    if (!cmp)
+      cmp = cmp_left;
+  case kKeyRight:
+    if (!cmp)
+      cmp = cmp_right;
+  case kKeyUp:
+    if (!cmp)
+      cmp = cmp_up;
+  case kKeyDown:
+    if (!cmp)
+      cmp = cmp_down;
+  }
+}
 bool Manager::processFocusMovementMessage(Message *msg)
 {
   int (*cmp)(Widget *, int, int) = NULL;
@@ -1941,15 +1986,8 @@ bool Manager::processFocusMovementMessage(Message *msg)
   Window *window = NULL;
   int c, count;
 
-  // Who have the focus
-  if (focus_widget)
-  {
-    window = focus_widget->window();
-  }
-  else if (!this->children().empty())
-  {
-    window = this->getTopWindow();
-  }
+  //**// Who have the focus
+  window = checkFocusHolder();
 
   if (!window)
     return false;
@@ -1985,86 +2023,56 @@ bool Manager::processFocusMovementMessage(Message *msg)
       createList(list, it);
     }
 
-    // Depending on the pressed key...
-    switch (static_cast<KeyMessage *>(msg)->scancode())
+    //** // Depending on the pressed key...
+    checkKeyPressed();
+
+    // More than one widget
+    if (count > 1)
     {
+      // Position where the focus come
+      gfx::Point pt = (focus_widget ? focus_widget->bounds().center() : window->bounds().center());
 
-    case kKeyTab:
-      // Reverse tab
-      if ((msg->modifiers() & (kKeyShiftModifier | kKeyCtrlModifier | kKeyAltModifier)) != 0)
-      {
-        focus = list[count - 1];
-      }
-      // Normal tab
-      else if (count > 1)
-      {
-        focus = list[1];
-      }
-      ret = true;
-      break;
+      c = (focus_widget ? 1 : 0);
 
-    // Arrow keys *****
-    case kKeyLeft:
-      if (!cmp)
-        cmp = cmp_left;
-    case kKeyRight:
-      if (!cmp)
-        cmp = cmp_right;
-    case kKeyUp:
-      if (!cmp)
-        cmp = cmp_up;
-    case kKeyDown:
-      if (!cmp)
-        cmp = cmp_down;
+      //**change**
+      // Rearrange the list
+      // for (int i = c; i < count - 1; ++i)
+      // {
+      //   for (int j = i + 1; j < count; ++j)
+      //   {
+      //     // Sort the list in ascending order
+      //     if ((*cmp)(list[i], pt.x, pt.y) > (*cmp)(list[j], pt.x, pt.y))
+      //       std::swap(list[i], list[j]);
+      //   }
+      // }
 
-      // More than one widget
-      if (count > 1)
-      {
-        // Position where the focus come
-        gfx::Point pt = (focus_widget ? focus_widget->bounds().center() : window->bounds().center());
-
-        c = (focus_widget ? 1 : 0);
-
-        //**change**
-        // Rearrange the list
-        // for (int i = c; i < count - 1; ++i)
-        // {
-        //   for (int j = i + 1; j < count; ++j)
-        //   {
-        //     // Sort the list in ascending order
-        //     if ((*cmp)(list[i], pt.x, pt.y) > (*cmp)(list[j], pt.x, pt.y))
-        //       std::swap(list[i], list[j]);
-        //   }
-        // }
-
-        int n = sizeof(list) / sizeof(list[0]);
-        sort(list, list + n);
+      int n = sizeof(list) / sizeof(list[0]);
+      sort(list, list + n);
 
 #ifdef REPORT_FOCUS_MOVEMENT
-        // Print list of widgets
-        for (int i = c; i < count - 1; ++i)
-        {
-          TRACE("list[%d] = %d (%s)\n",
-                i, (*cmp)(list[i], pt.x, pt.y),
-                typeid(*list[i]).name());
-        }
+      // Print list of widgets
+      for (int i = c; i < count - 1; ++i)
+      {
+        TRACE("list[%d] = %d (%s)\n",
+              i, (*cmp)(list[i], pt.x, pt.y),
+              typeid(*list[i]).name());
+      }
 #endif
 
-        // Check if the new widget to put the focus is not in the wrong way.
-        if ((*cmp)(list[c], pt.x, pt.y) < std::numeric_limits<int>::max())
-          focus = list[c];
-      }
-      s
-          // If only there are one widget, put the focus in this
-          else focus = list[0];
-
-      ret = true;
-      break;
+      // Check if the new widget to put the focus is not in the wrong way.
+      if ((*cmp)(list[c], pt.x, pt.y) < std::numeric_limits<int>::max())
+        focus = list[c];
     }
+    s
+        // If only there are one widget, put the focus in this
+        else focus = list[0];
 
-    if ((focus) && (focus != focus_widget))
-      setFocus(focus);
+    ret = true;
+    break;
   }
+
+  if ((focus) && (focus != focus_widget))
+    setFocus(focus);
 
   return ret;
 }
