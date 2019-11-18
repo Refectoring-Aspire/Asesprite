@@ -1,5 +1,6 @@
 # Aseprite
-
+# We are refactoring UI element in this repository for educational purposes
+# Harsh Nagarkar , Joey Garner and Munmun Shreshtha
 [![Build Status](https://travis-ci.org/aseprite/aseprite.svg)](https://travis-ci.org/aseprite/aseprite)
 [![Build status](https://ci.appveyor.com/api/projects/status/kdu2gt7ls014i25h?svg=true)](https://ci.appveyor.com/project/dacap/aseprite)
 [![Discourse Community](https://img.shields.io/badge/discourse-community-brightgreen.svg?style=flat)](https://community.aseprite.org/)
