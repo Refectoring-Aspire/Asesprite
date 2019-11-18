@@ -280,50 +280,50 @@ bool Entry::onProcessMessage(Message* msg)
             // Map common macOS/Windows shortcuts for Cut/Copy/Paste/Select all
 
 //bad formating
-  #if defined __APPLE__
-      if (msg->onlyCmdPressed())
-  #else
-      if (msg->onlyCtrlPressed())
-  #endif
-      {
-        switch (scancode) {
-          case kKeyX: cmd = EntryCmd::Cut; break;
-          case kKeyC: cmd = EntryCmd::Copy; break;
-          case kKeyV: cmd = EntryCmd::Paste; break;
-          case kKeyA: cmd = EntryCmd::SelectAll; break;
+    #if defined __APPLE__
+        if (msg->onlyCmdPressed())
+    #else
+        if (msg->onlyCtrlPressed())
+    #endif
+        {
+          switch (scancode) {
+            case kKeyX: cmd = EntryCmd::Cut; break;
+            case kKeyC: cmd = EntryCmd::Copy; break;
+            case kKeyV: cmd = EntryCmd::Paste; break;
+            case kKeyA: cmd = EntryCmd::SelectAll; break;
+            }
+          }
+          break;
+        }
+
+        if (cmd == EntryCmd::NoOp) {
+          if (keymsg->unicodeChar() >= 32) {
+            executeCmd(EntryCmd::InsertChar, keymsg->unicodeChar(),
+                        (msg->shiftPressed()) ? true: false);
+
+            // Select dead-key
+            if (keymsg->isDeadKey()) {
+              if (lastCaretPos() < m_maxsize)
+                selectText(m_caret-1, m_caret);
+            }
+            return true;
+          }
+          // Consume all key down of modifiers only, e.g. so the user
+          // can press first "Ctrl" key, and then "Ctrl+C"
+          // combination.
+          else if (keymsg->scancode() >= kKeyFirstModifierScancode) {
+            return true;
+          }
+          else {
+            break;              // Propagate to manager
           }
         }
-        break;
-      }
 
-      if (cmd == EntryCmd::NoOp) {
-        if (keymsg->unicodeChar() >= 32) {
-          executeCmd(EntryCmd::InsertChar, keymsg->unicodeChar(),
-                      (msg->shiftPressed()) ? true: false);
-
-          // Select dead-key
-          if (keymsg->isDeadKey()) {
-            if (lastCaretPos() < m_maxsize)
-              selectText(m_caret-1, m_caret);
+        executeCmd(cmd, keymsg->unicodeChar(),
+                    (msg->shiftPressed()) ? true: false);
+        return true;
           }
-          return true;
-        }
-        // Consume all key down of modifiers only, e.g. so the user
-        // can press first "Ctrl" key, and then "Ctrl+C"
-        // combination.
-        else if (keymsg->scancode() >= kKeyFirstModifierScancode) {
-          return true;
-        }
-        else {
-          break;              // Propagate to manager
-        }
-      }
-
-      executeCmd(cmd, keymsg->unicodeChar(),
-                  (msg->shiftPressed()) ? true: false);
-      return true;
-        }
-        break;
+          break;
 
     case kMouseDownMessage:
       captureMouse();
