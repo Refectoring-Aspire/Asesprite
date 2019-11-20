@@ -21,8 +21,7 @@
 
 static const int kTimeoutToOpenSubmenu = 250;
 
-namespace ui
-{
+namespace ui {
 
 using namespace gfx;
 
@@ -34,12 +33,10 @@ RegisterMessage kCloseMenuItemMessage;
 RegisterMessage kClosePopupMessage;
 RegisterMessage kExecuteMenuItemMessage;
 
-class OpenMenuItemMessage : public Message
-{
+class OpenMenuItemMessage : public Message {
 public:
   OpenMenuItemMessage(bool select_first) : Message(kOpenMenuItemMessage),
-                                           m_select_first(select_first)
-  {
+                                           m_select_first(select_first) {
   }
 
   // If this value is true, it means that after opening the menu, we
@@ -50,12 +47,10 @@ private:
   bool m_select_first;
 };
 
-class CloseMenuItemMessage : public Message
-{
+class CloseMenuItemMessage : public Message {
 public:
   CloseMenuItemMessage(bool last_of_close_chain) : Message(kCloseMenuItemMessage),
-                                                   m_last_of_close_chain(last_of_close_chain)
-  {
+                                                   m_last_of_close_chain(last_of_close_chain) {
   }
 
   // This fields is used to indicate the end of a sequence of
@@ -69,8 +64,7 @@ private:
 };
 
 // Data for the main jmenubar or the first popuped-jmenubox
-struct MenuBaseData
-{
+struct MenuBaseData {
   // True when the menu-items must be opened with the cursor movement
   bool was_clicked;
 
@@ -84,8 +78,7 @@ struct MenuBaseData
 
   bool close_all;
 
-  MenuBaseData()
-  {
+  MenuBaseData() {
     was_clicked = false;
     is_filtering = false;
     is_processing = false;
@@ -105,22 +98,17 @@ static MenuItem *find_previtem(Menu *menu, MenuItem *menuitem);
 // Menu
 
 Menu::Menu()
-    : Widget(kMenuWidget), m_menuitem(NULL)
-{
+    : Widget(kMenuWidget), m_menuitem(NULL) {
   enableFlags(IGNORE_MOUSE);
   initTheme();
 }
 
-Menu::~Menu()
-{
-  if (m_menuitem)
-  {
-    if (m_menuitem->getSubmenu() == this)
-    {
+Menu::~Menu() {
+  if (m_menuitem) {
+    if (m_menuitem->getSubmenu() == this) {
       m_menuitem->setSubmenu(NULL);
     }
-    else
-    {
+    else {
       ASSERT(m_menuitem->getSubmenu() == NULL);
     }
   }
@@ -130,14 +118,12 @@ Menu::~Menu()
 // MenuBox
 
 MenuBox::MenuBox(WidgetType type)
-    : Widget(type), m_base(NULL)
-{
+    : Widget(type), m_base(NULL) {
   this->setFocusStop(true);
   initTheme();
 }
 
-MenuBox::~MenuBox()
-{
+MenuBox::~MenuBox() {
   stopFilteringMouseDown();
   delete m_base;
 }
@@ -148,20 +134,17 @@ MenuBox::~MenuBox()
 bool MenuBar::m_expandOnMouseover = false;
 
 MenuBar::MenuBar()
-    : MenuBox(kMenuBarWidget)
-{
+    : MenuBox(kMenuBarWidget) {
   createBase();
 }
 
 // static
-bool MenuBar::expandOnMouseover()
-{
+bool MenuBar::expandOnMouseover() {
   return m_expandOnMouseover;
 }
 
 // static
-void MenuBar::setExpandOnMouseover(bool state)
-{
+void MenuBar::setExpandOnMouseover(bool state) {
   m_expandOnMouseover = state;
 }
 
@@ -169,8 +152,7 @@ void MenuBar::setExpandOnMouseover(bool state)
 // MenuItem
 
 MenuItem::MenuItem(const std::string &text)
-    : Widget(kMenuItemWidget)
-{
+    : Widget(kMenuItemWidget) {
   m_highlighted = false;
   m_submenu = NULL;
   m_submenu_menubox = NULL;
@@ -179,74 +161,62 @@ MenuItem::MenuItem(const std::string &text)
   initTheme();
 }
 
-MenuItem::~MenuItem()
-{
+MenuItem::~MenuItem() {
   delete m_submenu;
 }
 
-Menu *MenuBox::getMenu()
-{
+Menu *MenuBox::getMenu() {
   if (children().empty())
     return nullptr;
   else
     return static_cast<Menu *>(children().front());
 }
 
-MenuBaseData *MenuBox::createBase()
-{
+MenuBaseData *MenuBox::createBase() {
   delete m_base;
   m_base = new MenuBaseData;
   return m_base;
 }
 
-Menu *MenuItem::getSubmenu()
-{
+Menu *MenuItem::getSubmenu() {
   return m_submenu;
 }
 
-void MenuBox::setMenu(Menu *menu)
-{
+void MenuBox::setMenu(Menu *menu) {
   if (Menu *oldMenu = getMenu())
     removeChild(oldMenu);
 
-  if (menu)
-  {
+  if (menu) {
     ASSERT_VALID_WIDGET(menu);
     addChild(menu);
   }
 }
 
-void MenuItem::setSubmenu(Menu *menu)
-{
+void MenuItem::setSubmenu(Menu *menu) {
   if (m_submenu)
     m_submenu->setOwnerMenuItem(NULL);
 
   m_submenu = menu;
 
-  if (m_submenu)
-  {
+  if (m_submenu) {
     ASSERT_VALID_WIDGET(m_submenu);
     m_submenu->setOwnerMenuItem(this);
   }
 }
 
-bool MenuItem::isHighlighted() const
-{
+bool MenuItem::isHighlighted() const {
   return m_highlighted;
 }
 
-void MenuItem::setHighlighted(bool state)
-{
+void MenuItem::setHighlighted(bool state) {
   m_highlighted = state;
 }
 
-bool MenuItem::hasSubmenu() const
-{
+bool MenuItem::hasSubmenu() const {
   return (m_submenu && !m_submenu->children().empty());
 }
 
-void Menu::showPopup(const gfx::Point &pos)
-{
+void Menu::showPopup(const gfx::Point &pos) {
   // Generally, when we call showPopup() the menu shouldn't contain a
   // parent menu-box, because we're filtering kMouseDownMessage to
   // close the popup automatically when we click outside the menubox.
@@ -255,8 +225,7 @@ void Menu::showPopup(const gfx::Point &pos)
   // click could generate a kDoubleClickMessage which is then
   // converted to kMouseDownMessage to finally call showPopup() again.
   // In this case, the menu is already in a menubox.
-  if (parent())
-  {
+  if (parent()) {
     static_cast<MenuBox *>(parent())->cancelMenuLoop();
     return;
   }
@@ -300,15 +269,12 @@ void Menu::showPopup(const gfx::Point &pos)
   menubox->stopFilteringMouseDown();
 }
 
-Widget *Menu::findItemById(const char *id)
-{
+Widget *Menu::findItemById(const char *id) {
   Widget *result = findChild(id);
   if (result)
     return result;
-  for (auto child : children())
-  {
-    if (child->type() == kMenuItemWidget)
-    {
+  for (auto child : children()) {
+    if (child->type() == kMenuItemWidget) {
       result = static_cast<MenuItem *>(child)
                    ->getSubmenu()
                    ->findItemById(id);
@@ -319,20 +285,17 @@ Widget *Menu::findItemById(const char *id)
   return nullptr;
 }
 
-void Menu::onPaint(PaintEvent &ev)
-{
+void Menu::onPaint(PaintEvent &ev) {
   theme()->paintMenu(ev);
 }
 
-void Menu::onResize(ResizeEvent &ev)
-{
+void Menu::onResize(ResizeEvent &ev) {
   setBoundsQuietly(ev.bounds());
 
   Rect cpos = childrenBounds();
   bool isBar = (parent()->type() == kMenuBarWidget);
 
-  for (auto child : children())
-  {
+  for (auto child : children()) {
     Size reqSize = child->sizeHint();
 
     if (isBar)
@@ -349,23 +312,19 @@ void Menu::onResize(ResizeEvent &ev)
   }
 }
 
-void Menu::onSizeHint(SizeHintEvent &ev)
-{
+void Menu::onSizeHint(SizeHintEvent &ev) {
   Size size(0, 0);
   Size reqSize;
 
-  UI_FOREACH_WIDGET_WITH_END(children(), it, end)
-  {
+  UI_FOREACH_WIDGET_WITH_END(children(), it, end) {
     reqSize = (*it)->sizeHint();
 
     if (parent() &&
-        parent()->type() == kMenuBarWidget)
-    {
+        parent()->type() == kMenuBarWidget) {
       size.w += reqSize.w + ((it + 1 != end) ? childSpacing() : 0);
       size.h = MAX(size.h, reqSize.h);
     }
-    else
-    {
+    else {
       size.w = MAX(size.w, reqSize.w);
       size.h += reqSize.h + ((it + 1 != end) ? childSpacing() : 0);
     }
@@ -377,12 +336,10 @@ void Menu::onSizeHint(SizeHintEvent &ev)
   ev.setSizeHint(size);
 }
 
-bool MenuBox::onProcessMessage(Message *msg)
-{
+bool MenuBox::onProcessMessage(Message *msg) {
   Menu *menu = MenuBox::getMenu();
 
-  switch (msg->type())
-  {
+  switch (msg->type()) {
 
   case kMouseMoveMessage:
     if (!get_base(this)->was_clicked)
@@ -392,8 +349,7 @@ bool MenuBox::onProcessMessage(Message *msg)
 
   case kMouseDownMessage:
   case kDoubleClickMessage:
-    if (menu)
-    {
+    if (menu) {
       ASSERT(menu->parent() == this);
 
       if (get_base(this)->is_processing)
@@ -404,8 +360,7 @@ bool MenuBox::onProcessMessage(Message *msg)
       // Here we catch the filtered messages (menu-bar or the
       // popuped menu-box) to detect if the user press outside of
       // the widget
-      if (msg->type() == kMouseDownMessage && m_base != NULL)
-      {
+      if (msg->type() == kMouseDownMessage && m_base != NULL) {
         Widget *picked = manager()->pick(mousePos);
 
         // If one of these conditions are accomplished we have to
@@ -416,8 +371,7 @@ bool MenuBox::onProcessMessage(Message *msg)
             // The picked widget isn't from the same tree of menus
             (get_base_menubox(picked) != this ||
              (this->type() == kMenuBarWidget &&
-              picked->type() == kMenuWidget)))
-        {
+              picked->type() == kMenuWidget))) {
 
           // The user click outside all the menu-box/menu-items, close all
           menu->closeAll();
@@ -427,16 +381,13 @@ bool MenuBox::onProcessMessage(Message *msg)
 
       // Get the widget below the mouse cursor
       Widget *picked = menu->pick(mousePos);
-      if (picked)
-      {
+      if (picked) {
         if ((picked->type() == kMenuItemWidget) &&
-            !(picked->hasFlags(DISABLED)))
-        {
+            !(picked->hasFlags(DISABLED))) {
           MenuItem *pickedItem = static_cast<MenuItem *>(picked);
 
           // If the picked menu-item is not highlighted...
-          if (!pickedItem->isHighlighted())
-          {
+          if (!pickedItem->isHighlighted()) {
             // In menu-bar always open the submenu, in other popup-menus
             // open the submenu only if the user does click
             bool open_submenu =
@@ -449,15 +400,13 @@ bool MenuBox::onProcessMessage(Message *msg)
           // the user was waiting for the timer to open the
           // submenu...)
           else if (msg->type() == kMouseDownMessage &&
-                   pickedItem->hasSubmenu())
-          {
+                   pickedItem->hasSubmenu()) {
             pickedItem->stopTimer();
 
             // If the submenu is closed, open it
             if (!pickedItem->hasSubmenuOpened())
               pickedItem->openSubmenu(false);
-            else if (pickedItem->inBar())
-            {
+            else if (pickedItem->inBar()) {
               pickedItem->getSubmenu()->closeAll();
 
               // Set this flag to false so the submenu is not open
@@ -466,8 +415,7 @@ bool MenuBox::onProcessMessage(Message *msg)
             }
           }
         }
-        else if (!get_base(this)->was_clicked)
-        {
+        else if (!get_base(this)->was_clicked) {
           menu->unhighlightItem();
         }
       }
@@ -475,8 +423,7 @@ bool MenuBox::onProcessMessage(Message *msg)
     break;
 
   case kMouseLeaveMessage:
-    if (menu)
-    {
+    if (menu) {
       if (get_base(this)->is_processing)
         break;
 
@@ -487,8 +434,7 @@ bool MenuBox::onProcessMessage(Message *msg)
     break;
 
   case kMouseUpMessage:
-    if (menu)
-    {
+    if (menu) {
       if (get_base(this)->is_processing)
         break;
 
@@ -496,8 +442,7 @@ bool MenuBox::onProcessMessage(Message *msg)
       MenuItem *highlight = menu->getHighlightedItem();
       if (highlight &&
           !highlight->hasSubmenuOpened() &&
-          highlight->m_submenu_timer == NULL)
-      {
+          highlight->m_submenu_timer == NULL) {
         menu->closeAll();
         highlight->executeClick();
       }
@@ -505,8 +450,7 @@ bool MenuBox::onProcessMessage(Message *msg)
     break;
 
   case kKeyDownMessage:
-    if (menu)
-    {
+    if (menu) {
       MenuItem *selected;
 
       if (get_base(this)->is_processing)
@@ -517,27 +461,23 @@ bool MenuBox::onProcessMessage(Message *msg)
       // Check for ALT+some underlined letter
       if (((this->type() == kMenuBoxWidget) && (msg->modifiers() == kKeyNoneModifier || // <-- Inside menu-boxes we can use letters without Alt modifier pressed
                                                 msg->modifiers() == kKeyAltModifier)) ||
-          ((this->type() == kMenuBarWidget) && (msg->modifiers() == kKeyAltModifier)))
-      {
+          ((this->type() == kMenuBarWidget) && (msg->modifiers() == kKeyAltModifier))) {
         auto keymsg = static_cast<KeyMessage *>(msg);
         selected = check_for_letter(menu, keymsg);
-        if (selected)
-        {
+        if (selected) {
           menu->highlightItem(selected, true, true, true);
           return true;
         }
       }
 
       // Highlight movement with keyboard
-      if (this->hasFocus())
-      {
+      if (this->hasFocus()) {
         MenuItem *highlight = menu->getHighlightedItem();
         MenuItem *child_with_submenu_opened = NULL;
         bool used = false;
 
         // Search a child with highlight or the submenu opened
-        for (auto child : menu->children())
-        {
+        for (auto child : menu->children()) {
           if (child->type() != kMenuItemWidget)
             continue;
 
@@ -552,13 +492,11 @@ bool MenuBox::onProcessMessage(Message *msg)
         onProcessMessageSwitch(static_cast<KeyMessage *>(msg)->scancode())
 
             // Return true if we've already consumed the key.
-            if (used)
-        {
+            if (used) {
           return true;
         }
         // If the user presses the ALT key we close everything.
-        else if (static_cast<KeyMessage *>(msg)->scancode() == kKeyAlt)
-        {
+        else if (static_cast<KeyMessage *>(msg)->scancode() == kKeyAlt) {
           cancelMenuLoop();
         }
       }
@@ -566,8 +504,7 @@ bool MenuBox::onProcessMessage(Message *msg)
     break;
 
   default:
-    if (msg->type() == kClosePopupMessage)
-    {
+    if (msg->type() == kClosePopupMessage) {
       window()->closeWindow(nullptr);
     }
     break;
@@ -576,54 +513,20 @@ bool MenuBox::onProcessMessage(Message *msg)
   return Widget::onProcessMessage(msg);
 }
 
-void test () {
-
-
-
-}
-
-void onProcessMessageSwitch(int key)
-{
-  switch (key)
-  {
-  case kKeyEsc:
-    // In menu-bar
-    if (this->type() == kMenuBarWidget)
-    {
-      if (highlight)
-      {
-        cancelMenuLoop();
-        used = true;
-      }
-    }
-    // In menu-boxes
-    else
-    {
-      if (child_with_submenu_opened)
-      {
-        child_with_submenu_opened->closeSubmenu(true);
-        used = true;
-      }
-      // Go to parent
-      else if (menu->m_menuitem)
-      {
-        // Just retrogress one parent-level
-        menu->m_menuitem->closeSubmenu(true);
-        used = true;
-      }
-    }
-    break;
-
+void onProcessMessageSwitch(String key) {
+  if (key == kKeyEsc) {
+    caseKKeyEsc();
+  }
+  switch (key) {
+  
   case kKeyUp:
     // In menu-bar
-    if (this->type() == kMenuBarWidget)
-    {
+    if (this->type() == kMenuBarWidget) {
       if (child_with_submenu_opened)
         child_with_submenu_opened->closeSubmenu(true);
     }
     // In menu-boxes
-    else
-    {
+    else {
       // Go to previous
       highlight = find_previtem(menu, highlight);
       menu->highlightItem(highlight, false, false, false);
@@ -633,14 +536,12 @@ void onProcessMessageSwitch(int key)
 
   case kKeyDown:
     // In menu-bar
-    if (this->type() == kMenuBarWidget)
-    {
+    if (this->type() == kMenuBarWidget) {
       // Select the active menu
       menu->highlightItem(highlight, true, true, true);
     }
     // In menu-boxes
-    else
-    {
+    else {
       // Go to next
       highlight = find_nextitem(menu, highlight);
       menu->highlightItem(highlight, false, false, false);
@@ -650,25 +551,21 @@ void onProcessMessageSwitch(int key)
 
   case kKeyLeft:
     // In menu-bar
-    if (this->type() == kMenuBarWidget)
-    {
+    if (this->type() == kMenuBarWidget) {
       // Go to previous
       highlight = find_previtem(menu, highlight);
       menu->highlightItem(highlight, false, false, false);
     }
     // In menu-boxes
-    else
-    {
+    else {
       // Go to parent
-      if (menu->m_menuitem)
-      {
+      if (menu->m_menuitem) {
         Widget *parent = menu->m_menuitem->parent()->parent();
 
         // Go to the previous item in the parent
 
         // If the parent is the menu-bar
-        if (parent->type() == kMenuBarWidget)
-        {
+        if (parent->type() == kMenuBarWidget) {
           menu = static_cast<MenuBar *>(parent)->getMenu();
           MenuItem *menuitem = find_previtem(menu, menu->getHighlightedItem());
 
@@ -676,8 +573,7 @@ void onProcessMessageSwitch(int key)
           menu->highlightItem(menuitem, false, true, true);
         }
         // If the parent isn't the menu-bar
-        else
-        {
+        else {
           // Just retrogress one parent-level
           menu->m_menuitem->closeSubmenu(true);
         }
@@ -688,23 +584,19 @@ void onProcessMessageSwitch(int key)
 
   case kKeyRight:
     // In menu-bar
-    if (this->type() == kMenuBarWidget)
-    {
+    if (this->type() == kMenuBarWidget) {
       // Go to next
       highlight = find_nextitem(menu, highlight);
       menu->highlightItem(highlight, false, false, false);
     }
     // In menu-boxes
-    else
-    {
+    else {
       // Enter in sub-menu
-      if (highlight && highlight->hasSubmenu())
-      {
+      if (highlight && highlight->hasSubmenu()) {
         menu->highlightItem(highlight, true, true, true);
       }
       // Go to parent
-      else if (menu->m_menuitem)
-      {
+      else if (menu->m_menuitem) {
         // Get the root menu
         MenuBox *root = get_base_menubox(this);
         menu = root->getMenu();
@@ -728,16 +620,37 @@ void onProcessMessageSwitch(int key)
   }
 }
 
-void MenuBox::onResize(ResizeEvent &ev)
-{
+void caseKKeyEsc() {
+  // In menu-bar
+  if (this->type() == kMenuBarWidget) {
+    if (highlight) {
+      cancelMenuLoop();
+      used = true;
+    }
+  }
+  // In menu-boxes
+  else {
+    if (child_with_submenu_opened) {
+      child_with_submenu_opened->closeSubmenu(true);
+      used = true;
+    }
+    // Go to parent
+    else if (menu->m_menuitem) {
+      // Just retrogress one parent-level
+      menu->m_menuitem->closeSubmenu(true);
+      used = true;
+    }
+  }
+}
+
+void MenuBox::onResize(ResizeEvent &ev) {
   setBoundsQuietly(ev.bounds());
 
   if (Menu *menu = getMenu())
     menu->setBounds(childrenBounds());
 }
 
-void MenuBox::onSizeHint(SizeHintEvent &ev)
-{
+void MenuBox::onSizeHint(SizeHintEvent &ev) {
   Size size(0, 0);
 
   if (Menu *menu = getMenu())
@@ -749,18 +662,15 @@ void MenuBox::onSizeHint(SizeHintEvent &ev)
   ev.setSizeHint(size);
 }
 
-bool MenuItem::onProcessMessage(Message *msg)
-{
-  switch (msg->type())
-  {
+bool MenuItem::onProcessMessage(Message *msg) {
+  switch (msg->type()) {
 
   case kMouseEnterMessage:
     // TODO theme specific!!
     invalidate();
 
     // When a menu item receives the mouse, start a timer to open the submenu...
-    if (isEnabled() && hasSubmenu())
-    {
+    if (isEnabled() && hasSubmenu()) {
       // Start the timer to open the submenu...
       if (!inBar() || MenuBar::expandOnMouseover())
         startTimer();
@@ -772,8 +682,7 @@ bool MenuItem::onProcessMessage(Message *msg)
     if (isHighlighted() &&
         !m_submenu_menubox &&
         parent() &&
-        parent()->type() == kMenuWidget)
-    {
+        parent()->type() == kMenuWidget) {
       static_cast<Menu *>(parent())->unhighlightItem();
     }
 
@@ -786,12 +695,10 @@ bool MenuItem::onProcessMessage(Message *msg)
     break;
 
   default:
-    if (msg->type() == kOpenMessage)
-    {
+    if (msg->type() == kOpenMessage) {
       validateItem();
     }
-    else if (msg->type() == kOpenMenuItemMessage)
-    {
+    else if (msg->type() == kOpenMenuItemMessage) {
       validateItem();
 
       MenuBaseData *base = get_base(this);
@@ -814,13 +721,11 @@ bool MenuItem::onProcessMessage(Message *msg)
       // Menubox position
       Rect pos = window->bounds();
 
-      if (inBar())
-      {
+      if (inBar()) {
         pos.x = MID(0, bounds().x, ui::display_w() - pos.w);
         pos.y = MAX(0, bounds().y2());
       }
-      else
-      {
+      else {
         int x_left = old_pos.x - pos.w;
         int x_right = old_pos.x2();
         int x, y = bounds().y - 3 * guiscale();
@@ -853,18 +758,15 @@ bool MenuItem::onProcessMessage(Message *msg)
       menubox->setFocusMagnet(true);
 
       // Setup the highlight of the new menubox
-      if (select_first)
-      {
+      if (select_first) {
         // Select the first child
         MenuItem *first_child = NULL;
 
-        for (auto child : m_submenu->children())
-        {
+        for (auto child : m_submenu->children()) {
           if (child->type() != kMenuItemWidget)
             continue;
 
-          if (child->isEnabled())
-          {
+          if (child->isEnabled()) {
             first_child = static_cast<MenuItem *>(child);
             break;
           }
@@ -885,8 +787,7 @@ bool MenuItem::onProcessMessage(Message *msg)
 
       return true;
     }
-    else if (msg->type() == kCloseMenuItemMessage)
-    {
+    else if (msg->type() == kCloseMenuItemMessage) {
       bool last_of_close_chain = static_cast<CloseMenuItemMessage *>(msg)->last_of_close_chain();
       MenuBaseData *base = get_base(this);
       Window *window;
@@ -918,8 +819,7 @@ bool MenuItem::onProcessMessage(Message *msg)
       // (MenuBoxWindow) will be deferDelete() on
       // kCloseMessage.
 
-      if (last_of_close_chain)
-      {
+      if (last_of_close_chain) {
         base->close_all = false;
         base->is_processing = false;
       }
@@ -928,16 +828,14 @@ bool MenuItem::onProcessMessage(Message *msg)
       stopTimer();
       return true;
     }
-    else if (msg->type() == kExecuteMenuItemMessage)
-    {
+    else if (msg->type() == kExecuteMenuItemMessage) {
       onClick();
       return true;
     }
     break;
 
   case kTimerMessage:
-    if (static_cast<TimerMessage *>(msg)->timer() == m_submenu_timer.get())
-    {
+    if (static_cast<TimerMessage *>(msg)->timer() == m_submenu_timer.get()) {
       MenuBaseData *base = get_base(this);
 
       ASSERT(hasSubmenu());
@@ -955,8 +853,7 @@ bool MenuItem::onProcessMessage(Message *msg)
   return Widget::onProcessMessage(msg);
 }
 
-void MenuItem::onInitTheme(InitThemeEvent &ev)
-{
+void MenuItem::onInitTheme(InitThemeEvent &ev) {
   if (m_submenu)
     m_submenu->initTheme();
   if (m_submenu_menubox)
@@ -964,29 +861,24 @@ void MenuItem::onInitTheme(InitThemeEvent &ev)
   Widget::onInitTheme(ev);
 }
 
-void MenuItem::onPaint(PaintEvent &ev)
-{
+void MenuItem::onPaint(PaintEvent &ev) {
   theme()->paintMenuItem(ev);
 }
 
-void MenuItem::onClick()
-{
+void MenuItem::onClick() {
   // Fire new Click() signal.
   Click();
 }
 
-void MenuItem::onValidate()
-{
+void MenuItem::onValidate() {
   // Here the user can customize the automatic validation of the menu
   // item before it's shown.
 }
 
-void MenuItem::onSizeHint(SizeHintEvent &ev)
-{
+void MenuItem::onSizeHint(SizeHintEvent &ev) {
   Size size(0, 0);
 
-  if (hasText())
-  {
+  if (hasText()) {
     size.w =
         +textWidth() + (inBar() ? childSpacing() / 4 : childSpacing()) + border().width();
 
@@ -998,22 +890,17 @@ void MenuItem::onSizeHint(SizeHintEvent &ev)
 }
 
 // Climbs the hierarchy of menus to get the most-top menubox.
-static MenuBox *get_base_menubox(Widget *widget)
-{
-  while (widget)
-  {
+static MenuBox *get_base_menubox(Widget *widget) {
+  while (widget) {
     ASSERT_VALID_WIDGET(widget);
 
     // We are in a menubox
     if (widget->type() == kMenuBoxWidget ||
-        widget->type() == kMenuBarWidget)
-    {
-      if (static_cast<MenuBox *>(widget)->getBase())
-      {
+        widget->type() == kMenuBarWidget) {
+      if (static_cast<MenuBox *>(widget)->getBase()) {
         return static_cast<MenuBox *>(widget);
       }
-      else
-      {
+      else {
         Menu *menu = static_cast<MenuBox *>(widget)->getMenu();
 
         ASSERT(menu != NULL);
@@ -1022,16 +909,14 @@ static MenuBox *get_base_menubox(Widget *widget)
         widget = menu->getOwnerMenuItem();
       }
     }
-    else
-    {
+    else {
       widget = widget->parent();
     }
   }
   return nullptr;
 }
 
-static MenuBaseData *get_base(Widget *widget)
-{
+static MenuBaseData *get_base(Widget *widget) {
   MenuBox *menubox = get_base_menubox(widget);
   ASSERT(menubox);
   if (menubox)
@@ -1040,10 +925,8 @@ static MenuBaseData *get_base(Widget *widget)
     return nullptr;
 }
 
-MenuItem *Menu::getHighlightedItem()
-{
-  for (auto child : children())
-  {
+MenuItem *Menu::getHighlightedItem() {
+  for (auto child : children()) {
     if (child->type() != kMenuItemWidget)
       continue;
 
@@ -1054,45 +937,36 @@ MenuItem *Menu::getHighlightedItem()
   return NULL;
 }
 
-void Menu::highlightItem(MenuItem *menuitem, bool click, bool open_submenu, bool select_first_child)
-{
+void Menu::highlightItem(MenuItem *menuitem, bool click, bool open_submenu, bool select_first_child) {
   // Find the menuitem with the highlight
-  for (auto child : children())
-  {
+  for (auto child : children()) {
     if (child->type() != kMenuItemWidget)
       continue;
 
-    if (child != menuitem)
-    {
+    if (child != menuitem) {
       // Is it?
-      if (static_cast<MenuItem *>(child)->isHighlighted())
-      {
+      if (static_cast<MenuItem *>(child)->isHighlighted()) {
         static_cast<MenuItem *>(child)->setHighlighted(false);
         child->invalidate();
       }
     }
   }
 
-  if (menuitem)
-  {
-    if (!menuitem->isHighlighted())
-    {
+  if (menuitem) {
+    if (!menuitem->isHighlighted()) {
       menuitem->setHighlighted(true);
       menuitem->invalidate();
     }
 
     // Highlight parents
-    if (getOwnerMenuItem() != NULL)
-    {
+    if (getOwnerMenuItem() != NULL) {
       static_cast<Menu *>(getOwnerMenuItem()->parent())
           ->highlightItem(getOwnerMenuItem(), false, false, false);
     }
 
     // Open submenu of the menitem
-    if (menuitem->hasSubmenu())
-    {
-      if (open_submenu)
-      {
+    if (menuitem->hasSubmenu()) {
+      if (open_submenu) {
         // If the submenu is closed, open it
         if (!menuitem->hasSubmenuOpened())
           menuitem->openSubmenu(select_first_child);
@@ -1102,28 +976,24 @@ void Menu::highlightItem(MenuItem *menuitem, bool click, bool open_submenu, bool
       }
     }
     // Execute menuitem action
-    else if (click)
-    {
+    else if (click) {
       closeAll();
       menuitem->executeClick();
     }
   }
 }
 
-void Menu::unhighlightItem()
-{
+void Menu::unhighlightItem() {
   highlightItem(NULL, false, false, false);
 }
 
-bool MenuItem::inBar()
-{
+bool MenuItem::inBar() {
   return (parent() &&
           parent()->parent() &&
           parent()->parent()->type() == kMenuBarWidget);
 }
 
-void MenuItem::openSubmenu(bool select_first)
-{
+void MenuItem::openSubmenu(bool select_first) {
   Widget *menu;
   Message *msg;
 
@@ -1137,16 +1007,13 @@ void MenuItem::openSubmenu(bool select_first)
   ASSERT_VALID_WIDGET(menu);
 
   // Close all siblings of 'menuitem'
-  if (menu->parent())
-  {
-    for (auto child : menu->children())
-    {
+  if (menu->parent()) {
+    for (auto child : menu->children()) {
       if (child->type() != kMenuItemWidget)
         continue;
 
       MenuItem *childMenuItem = static_cast<MenuItem *>(child);
-      if (childMenuItem != this && childMenuItem->hasSubmenuOpened())
-      {
+      if (childMenuItem != this && childMenuItem->hasSubmenuOpened()) {
         childMenuItem->closeSubmenu(false);
       }
     }
@@ -1174,8 +1041,7 @@ void MenuItem::openSubmenu(bool select_first)
     base_menubox->startFilteringMouseDown();
 }
 
-void MenuItem::closeSubmenu(bool last_of_close_chain)
-{
+void MenuItem::closeSubmenu(bool last_of_close_chain) {
   Widget *menu;
   Message *msg;
   MenuBaseData *base;
@@ -1186,8 +1052,7 @@ void MenuItem::closeSubmenu(bool last_of_close_chain)
   menu = m_submenu_menubox->getMenu();
   ASSERT(menu != NULL);
 
-  for (auto child : menu->children())
-  {
+  for (auto child : menu->children()) {
     if (child->type() != kMenuItemWidget)
       continue;
 
@@ -1202,8 +1067,7 @@ void MenuItem::closeSubmenu(bool last_of_close_chain)
 
   // If this is the last message of the chain, here we have the
   // responsibility to set is_processing flag to true.
-  if (last_of_close_chain)
-  {
+  if (last_of_close_chain) {
     // Get the 'base'
     base = get_base(this);
     ASSERT(base != NULL);
@@ -1214,27 +1078,23 @@ void MenuItem::closeSubmenu(bool last_of_close_chain)
   }
 }
 
-void MenuItem::startTimer()
-{
+void MenuItem::startTimer() {
   if (m_submenu_timer == NULL)
     m_submenu_timer.reset(new Timer(kTimeoutToOpenSubmenu, this));
 
   m_submenu_timer->start();
 }
 
-void MenuItem::stopTimer()
-{
+void MenuItem::stopTimer() {
   // Stop timer to open the popup
   if (m_submenu_timer)
     m_submenu_timer.reset();
 }
 
-void Menu::closeAll()
-{
+void Menu::closeAll() {
   Menu *menu = this;
   MenuItem *menuitem = NULL;
-  while (menu->m_menuitem)
-  {
+  while (menu->m_menuitem) {
     menuitem = menu->m_menuitem;
     menu = static_cast<Menu *>(menuitem->parent());
   }
@@ -1255,15 +1115,12 @@ void Menu::closeAll()
 
   menu->unhighlightItem();
 
-  if (menuitem != NULL)
-  {
+  if (menuitem != NULL) {
     if (menuitem->hasSubmenuOpened())
       menuitem->closeSubmenu(true);
   }
-  else
-  {
-    for (auto child : menu->children())
-    {
+  else {
+    for (auto child : menu->children()) {
       if (child->type() != kMenuItemWidget)
         continue;
 
@@ -1278,38 +1135,31 @@ void Menu::closeAll()
     base_menubox->closePopup();
 }
 
-void MenuBox::closePopup()
-{
+void MenuBox::closePopup() {
   Message *msg = new Message(kClosePopupMessage);
   msg->setRecipient(this);
   Manager::getDefault()->enqueueMessage(msg);
 }
 
-void MenuBox::startFilteringMouseDown()
-{
-  if (m_base && !m_base->is_filtering)
-  {
+void MenuBox::startFilteringMouseDown() {
+  if (m_base && !m_base->is_filtering) {
     m_base->is_filtering = true;
     Manager::getDefault()->addMessageFilter(kMouseDownMessage, this);
     Manager::getDefault()->addMessageFilter(kDoubleClickMessage, this);
   }
 }
 
-void MenuBox::stopFilteringMouseDown()
-{
-  if (m_base && m_base->is_filtering)
-  {
+void MenuBox::stopFilteringMouseDown() {
+  if (m_base && m_base->is_filtering) {
     m_base->is_filtering = false;
     Manager::getDefault()->removeMessageFilter(kMouseDownMessage, this);
     Manager::getDefault()->removeMessageFilter(kDoubleClickMessage, this);
   }
 }
 
-void MenuBox::cancelMenuLoop()
-{
+void MenuBox::cancelMenuLoop() {
   Menu *menu = getMenu();
-  if (menu)
-  {
+  if (menu) {
     // Do not close the popup menus if we're already processing
     // open/close popup messages.
     if (get_base(this)->is_processing)
@@ -1322,23 +1172,19 @@ void MenuBox::cancelMenuLoop()
   }
 }
 
-void MenuItem::executeClick()
-{
+void MenuItem::executeClick() {
   // Send the message
   Message *msg = new Message(kExecuteMenuItemMessage);
   msg->setRecipient(this);
   Manager::getDefault()->enqueueMessage(msg);
 }
 
-void MenuItem::validateItem()
-{
+void MenuItem::validateItem() {
   onValidate();
 }
 
-static MenuItem *check_for_letter(Menu *menu, const KeyMessage *keymsg)
-{
-  for (auto child : menu->children())
-  {
+static MenuItem *check_for_letter(Menu *menu, const KeyMessage *keymsg) {
+  for (auto child : menu->children()) {
     if (child->type() != kMenuItemWidget)
       continue;
 
@@ -1351,13 +1197,11 @@ static MenuItem *check_for_letter(Menu *menu, const KeyMessage *keymsg)
 
 // Finds the next item of `menuitem', if `menuitem' is NULL searchs
 // from the first item in `menu'
-static MenuItem *find_nextitem(Menu *menu, MenuItem *menuitem)
-{
+static MenuItem *find_nextitem(Menu *menu, MenuItem *menuitem) {
   WidgetsList::const_iterator begin = menu->children().begin();
   WidgetsList::const_iterator it, end = menu->children().end();
 
-  if (menuitem)
-  {
+  if (menuitem) {
     it = std::find(begin, end, menuitem);
     if (it != end)
       ++it;
@@ -1365,8 +1209,7 @@ static MenuItem *find_nextitem(Menu *menu, MenuItem *menuitem)
   else
     it = begin;
 
-  for (; it != end; ++it)
-  {
+  for (; it != end; ++it) {
     Widget *nextitem = *it;
     if ((nextitem->type() == kMenuItemWidget) && nextitem->isEnabled())
       return static_cast<MenuItem *>(nextitem);
@@ -1378,13 +1221,11 @@ static MenuItem *find_nextitem(Menu *menu, MenuItem *menuitem)
     return NULL;
 }
 
-static MenuItem *find_previtem(Menu *menu, MenuItem *menuitem)
-{
+static MenuItem *find_previtem(Menu *menu, MenuItem *menuitem) {
   WidgetsList::const_reverse_iterator begin = menu->children().rbegin();
   WidgetsList::const_reverse_iterator it, end = menu->children().rend();
 
-  if (menuitem)
-  {
+  if (menuitem) {
     it = std::find(begin, end, menuitem);
     if (it != end)
       ++it;
@@ -1392,8 +1233,7 @@ static MenuItem *find_previtem(Menu *menu, MenuItem *menuitem)
   else
     it = begin;
 
-  for (; it != end; ++it)
-  {
+  for (; it != end; ++it) {
     Widget *nextitem = *it;
     if ((nextitem->type() == kMenuItemWidget) && nextitem->isEnabled())
       return static_cast<MenuItem *>(nextitem);
@@ -1409,17 +1249,14 @@ static MenuItem *find_previtem(Menu *menu, MenuItem *menuitem)
 // MenuBoxWindow
 
 MenuBoxWindow::MenuBoxWindow(MenuBox *menubox)
-    : Window(WithoutTitleBar, "")
-{
+    : Window(WithoutTitleBar, "") {
   setMoveable(false); // Can't move the window
   addChild(menubox);
   remapWindow();
 }
 
-bool MenuBoxWindow::onProcessMessage(Message *msg)
-{
-  switch (msg->type())
-  {
+bool MenuBoxWindow::onProcessMessage(Message *msg) {
+  switch (msg->type()) {
 
   case kCloseMessage:
     // Delete this window automatically
