@@ -514,109 +514,19 @@ bool MenuBox::onProcessMessage(Message *msg) {
 }
 
 void onProcessMessageSwitch(String key) {
-  if (key == kKeyEsc) {
-    caseKKeyEsc();
-  }
-  switch (key) {
-  
-  case kKeyUp:
-    // In menu-bar
-    if (this->type() == kMenuBarWidget) {
-      if (child_with_submenu_opened)
-        child_with_submenu_opened->closeSubmenu(true);
+    if (key == kKeyEsc) {
+      caseKKeyEsc();
+    } else if (key == kKeyUp) {
+      caseKKeyUp();
+    } else if (key == kKeyDown) {
+      caseKKeyDown();
+    } else if (key == kKeyLeft) {
+      caseKKeyLeft();
+    } else if (key == kKeyRight) {
+      caseKKeyRight();
+    } else if (key == kKeyEnter || key == kKeyEnterPad) {
+      caseKKeyEnter();
     }
-    // In menu-boxes
-    else {
-      // Go to previous
-      highlight = find_previtem(menu, highlight);
-      menu->highlightItem(highlight, false, false, false);
-    }
-    used = true;
-    break;
-
-  case kKeyDown:
-    // In menu-bar
-    if (this->type() == kMenuBarWidget) {
-      // Select the active menu
-      menu->highlightItem(highlight, true, true, true);
-    }
-    // In menu-boxes
-    else {
-      // Go to next
-      highlight = find_nextitem(menu, highlight);
-      menu->highlightItem(highlight, false, false, false);
-    }
-    used = true;
-    break;
-
-  case kKeyLeft:
-    // In menu-bar
-    if (this->type() == kMenuBarWidget) {
-      // Go to previous
-      highlight = find_previtem(menu, highlight);
-      menu->highlightItem(highlight, false, false, false);
-    }
-    // In menu-boxes
-    else {
-      // Go to parent
-      if (menu->m_menuitem) {
-        Widget *parent = menu->m_menuitem->parent()->parent();
-
-        // Go to the previous item in the parent
-
-        // If the parent is the menu-bar
-        if (parent->type() == kMenuBarWidget) {
-          menu = static_cast<MenuBar *>(parent)->getMenu();
-          MenuItem *menuitem = find_previtem(menu, menu->getHighlightedItem());
-
-          // Go to previous item in the parent
-          menu->highlightItem(menuitem, false, true, true);
-        }
-        // If the parent isn't the menu-bar
-        else {
-          // Just retrogress one parent-level
-          menu->m_menuitem->closeSubmenu(true);
-        }
-      }
-    }
-    used = true;
-    break;
-
-  case kKeyRight:
-    // In menu-bar
-    if (this->type() == kMenuBarWidget) {
-      // Go to next
-      highlight = find_nextitem(menu, highlight);
-      menu->highlightItem(highlight, false, false, false);
-    }
-    // In menu-boxes
-    else {
-      // Enter in sub-menu
-      if (highlight && highlight->hasSubmenu()) {
-        menu->highlightItem(highlight, true, true, true);
-      }
-      // Go to parent
-      else if (menu->m_menuitem) {
-        // Get the root menu
-        MenuBox *root = get_base_menubox(this);
-        menu = root->getMenu();
-
-        // Go to the next item in the root
-        MenuItem *menuitem = find_nextitem(menu, menu->getHighlightedItem());
-
-        // Open the sub-menu
-        menu->highlightItem(menuitem, false, true, true);
-      }
-    }
-    used = true;
-    break;
-
-  case kKeyEnter:
-  case kKeyEnterPad:
-    if (highlight)
-      menu->highlightItem(highlight, true, true, true);
-    used = true;
-    break;
   }
 }
 
@@ -641,6 +551,103 @@ void caseKKeyEsc() {
       used = true;
     }
   }
+}
+
+void caseKKeyUp() {
+  // In menu-bar
+  if (this->type() == kMenuBarWidget) {
+    if (child_with_submenu_opened)
+      child_with_submenu_opened->closeSubmenu(true);
+  }
+  // In menu-boxes
+  else {
+    // Go to previous
+    highlight = find_previtem(menu, highlight);
+    menu->highlightItem(highlight, false, false, false);
+  }
+  used = true;
+}
+
+void caseKKeyDown() {
+  // In menu-bar
+  if (this->type() == kMenuBarWidget) {
+    // Select the active menu
+    menu->highlightItem(highlight, true, true, true);
+  }
+  // In menu-boxes
+  else {
+    // Go to next
+    highlight = find_nextitem(menu, highlight);
+    menu->highlightItem(highlight, false, false, false);
+  }
+  used = true;
+}
+
+void kKeyLeft() {
+  // In menu-bar
+  if (this->type() == kMenuBarWidget) {
+    // Go to previous
+    highlight = find_previtem(menu, highlight);
+    menu->highlightItem(highlight, false, false, false);
+  }
+  // In menu-boxes
+  else {
+    // Go to parent
+    if (menu->m_menuitem) {
+      Widget *parent = menu->m_menuitem->parent()->parent();
+
+      // Go to the previous item in the parent
+
+      // If the parent is the menu-bar
+      if (parent->type() == kMenuBarWidget) {
+        menu = static_cast<MenuBar *>(parent)->getMenu();
+        MenuItem *menuitem = find_previtem(menu, menu->getHighlightedItem());
+
+        // Go to previous item in the parent
+        menu->highlightItem(menuitem, false, true, true);
+      }
+      // If the parent isn't the menu-bar
+      else {
+        // Just retrogress one parent-level
+        menu->m_menuitem->closeSubmenu(true);
+      }
+    }
+  }
+  used = true;
+}
+
+void kKeyRight() {
+  // In menu-bar
+  if (this->type() == kMenuBarWidget) {
+    // Go to next
+    highlight = find_nextitem(menu, highlight);
+    menu->highlightItem(highlight, false, false, false);
+  }
+  // In menu-boxes
+  else {
+    // Enter in sub-menu
+    if (highlight && highlight->hasSubmenu()) {
+      menu->highlightItem(highlight, true, true, true);
+    }
+    // Go to parent
+    else if (menu->m_menuitem) {
+      // Get the root menu
+      MenuBox *root = get_base_menubox(this);
+      menu = root->getMenu();
+
+      // Go to the next item in the root
+      MenuItem *menuitem = find_nextitem(menu, menu->getHighlightedItem());
+
+      // Open the sub-menu
+      menu->highlightItem(menuitem, false, true, true);
+    }
+  }
+  used = true;
+}
+
+void kKeyEnter() {
+  if (highlight) menu->highlightItem(highlight, true, true, true);
+  used = true;
 }
 
 void MenuBox::onResize(ResizeEvent &ev) {
