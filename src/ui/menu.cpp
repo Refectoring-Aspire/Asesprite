@@ -706,93 +706,7 @@ bool MenuItem::onProcessMessage(Message *msg) {
       validateItem();
     }
     else if (msg->type() == kOpenMenuItemMessage) {
-      validateItem();
-
-      MenuBaseData *base = get_base(this);
-      bool select_first = static_cast<OpenMenuItemMessage *>(msg)->select_first();
-
-      ASSERT(base != NULL);
-      ASSERT(base->is_processing);
-      ASSERT(hasSubmenu());
-
-      Rect old_pos = window()->bounds();
-      old_pos.w -= 1 * guiscale();
-
-      MenuBox *menubox = new MenuBox();
-      m_submenu_menubox = menubox;
-      menubox->setMenu(m_submenu);
-
-      // New window and new menu-box
-      Window *window = new MenuBoxWindow(menubox);
-
-      // Menubox position
-      Rect pos = window->bounds();
-
-      if (inBar()) {
-        pos.x = MID(0, bounds().x, ui::display_w() - pos.w);
-        pos.y = MAX(0, bounds().y2());
-      }
-      else {
-        int x_left = old_pos.x - pos.w;
-        int x_right = old_pos.x2();
-        int x, y = bounds().y - 3 * guiscale();
-        Rect r1(0, 0, pos.w, pos.h), r2(0, 0, pos.w, pos.h);
-
-        r1.x = x_left = MID(0, x_left, ui::display_w() - pos.w);
-        r2.x = x_right = MID(0, x_right, ui::display_w() - pos.w);
-        r1.y = r2.y = y = MID(0, y, ui::display_h() - pos.h);
-
-        // Calculate both intersections
-        gfx::Rect s1 = r1.createIntersection(old_pos);
-        gfx::Rect s2 = r2.createIntersection(old_pos);
-
-        if (s2.isEmpty())
-          x = x_right; // Use the right because there aren't intersection with it
-        else if (s1.isEmpty())
-          x = x_left; // Use the left because there are not intersection
-        else if (r2.w * r2.h <= r1.w * r1.h)
-          x = x_right; // Use the right because there are less intersection area
-        else
-          x = x_left; // Use the left because there are less intersection area
-
-        pos.x = x;
-        pos.y = y;
-      }
-
-      window->positionWindow(pos.x, pos.y);
-
-      // Set the focus to the new menubox
-      menubox->setFocusMagnet(true);
-
-      // Setup the highlight of the new menubox
-      if (select_first) {
-        // Select the first child
-        MenuItem *first_child = NULL;
-
-        for (auto child : m_submenu->children()) {
-          if (child->type() != kMenuItemWidget)
-            continue;
-
-          if (child->isEnabled()) {
-            first_child = static_cast<MenuItem *>(child);
-            break;
-          }
-        }
-
-        if (first_child)
-          m_submenu->highlightItem(first_child, false, false, false);
-        else
-          m_submenu->unhighlightItem();
-      }
-      else
-        m_submenu->unhighlightItem();
-
-      // Run in background
-      window->openWindow();
-
-      base->is_processing = false;
-
-      return true;
+      return kOpenMenuItemMessage();
     }
     else if (msg->type() == kCloseMenuItemMessage) {
       bool last_of_close_chain = static_cast<CloseMenuItemMessage *>(msg)->last_of_close_chain();
@@ -858,6 +772,96 @@ bool MenuItem::onProcessMessage(Message *msg) {
   }
 
   return Widget::onProcessMessage(msg);
+}
+
+void kOpenMenuItemMessage() {
+  validateItem();
+
+  MenuBaseData *base = get_base(this);
+  bool select_first = static_cast<OpenMenuItemMessage *>(msg)->select_first();
+
+  ASSERT(base != NULL);
+  ASSERT(base->is_processing);
+  ASSERT(hasSubmenu());
+
+  Rect old_pos = window()->bounds();
+  old_pos.w -= 1 * guiscale();
+
+  MenuBox *menubox = new MenuBox();
+  m_submenu_menubox = menubox;
+  menubox->setMenu(m_submenu);
+
+  // New window and new menu-box
+  Window *window = new MenuBoxWindow(menubox);
+
+  // Menubox position
+  Rect pos = window->bounds();
+
+  if (inBar()) {
+    pos.x = MID(0, bounds().x, ui::display_w() - pos.w);
+    pos.y = MAX(0, bounds().y2());
+  }
+  else {
+    int x_left = old_pos.x - pos.w;
+    int x_right = old_pos.x2();
+    int x, y = bounds().y - 3 * guiscale();
+    Rect r1(0, 0, pos.w, pos.h), r2(0, 0, pos.w, pos.h);
+
+    r1.x = x_left = MID(0, x_left, ui::display_w() - pos.w);
+    r2.x = x_right = MID(0, x_right, ui::display_w() - pos.w);
+    r1.y = r2.y = y = MID(0, y, ui::display_h() - pos.h);
+
+    // Calculate both intersections
+    gfx::Rect s1 = r1.createIntersection(old_pos);
+    gfx::Rect s2 = r2.createIntersection(old_pos);
+
+    if (s2.isEmpty())
+      x = x_right; // Use the right because there aren't intersection with it
+    else if (s1.isEmpty())
+      x = x_left; // Use the left because there are not intersection
+    else if (r2.w * r2.h <= r1.w * r1.h)
+      x = x_right; // Use the right because there are less intersection area
+    else
+      x = x_left; // Use the left because there are less intersection area
+
+    pos.x = x;
+    pos.y = y;
+  }
+
+  window->positionWindow(pos.x, pos.y);
+
+  // Set the focus to the new menubox
+  menubox->setFocusMagnet(true);
+
+  // Setup the highlight of the new menubox
+  if (select_first) {
+    // Select the first child
+    MenuItem *first_child = NULL;
+
+    for (auto child : m_submenu->children()) {
+      if (child->type() != kMenuItemWidget)
+        continue;
+
+      if (child->isEnabled()) {
+        first_child = static_cast<MenuItem *>(child);
+        break;
+      }
+    }
+
+    if (first_child)
+      m_submenu->highlightItem(first_child, false, false, false);
+    else
+      m_submenu->unhighlightItem();
+  }
+  else
+    m_submenu->unhighlightItem();
+
+  // Run in background
+  window->openWindow();
+
+  base->is_processing = false;
+
+  return true;
 }
 
 void MenuItem::onInitTheme(InitThemeEvent &ev) {
