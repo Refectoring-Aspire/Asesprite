@@ -80,6 +80,8 @@ namespace ui {
     MenuBaseData* createBase();
 
   private:
+    void kDoubleClickMessageCaseHelper();
+    boolean kKeyDownMessageCaseHelper();
     boolean onProcessMessageSwitch();
     void closePopup();
     void startFilteringMouseDown();
