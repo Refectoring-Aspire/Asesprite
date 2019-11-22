@@ -220,7 +220,8 @@ gfx::Rect Entry::getEntryTextBounds() const
   return onGetEntryTextBounds();
 }
 
-bool Entry::captureMouseMovement(){
+bool Entry::captureMouseMovement()
+{
   bool is_dirty = false;
         int c = getCaretFromMouse(static_cast<MouseMessage*>(msg));
 
@@ -398,8 +399,9 @@ bool Entry::onProcessMessage(Message* msg)
 }
 
 
-std::string  Entry::keyscancode(std::string scancode){
-	  switch (scancode) {
+std::string  Entry::keyscancode(std::string scancode)
+{
+	  switch (scancode){
 
       case kKeyLeft:
         if (msg->ctrlPressed() || msg->altPressed())
@@ -453,6 +455,7 @@ std::string  Entry::keyscancode(std::string scancode){
       default:
 
     return cmd;
+    }
 }
 // static
 gfx::Size Entry::sizeHintWithText(Entry* entry,
