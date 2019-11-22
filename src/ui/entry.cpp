@@ -309,8 +309,7 @@ bool Entry::onProcessMessage(Message* msg)
 		  cmd = keyscancode(scancode);
         
             // Map common macOS/Windows shortcuts for Cut/Copy/Paste/Select all
-
-//bad formating
+          //bad formating
       #if defined __APPLE__
           if (msg->onlyCmdPressed())
       #else
@@ -379,7 +378,7 @@ bool Entry::onProcessMessage(Message* msg)
         }
       }
       return true;
-
+    
     case kDoubleClickMessage:
       forwardWord();
       m_select = m_caret;
