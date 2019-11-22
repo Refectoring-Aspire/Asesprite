@@ -386,13 +386,14 @@ void Manager::generateMessagesFromOSEvents()
   os::Event osEvent;
 
   //**
-  for (;;){
+  for (;;)
+  {
 
     // to-do Add timers to laf::os library so we can wait for then in
     //      the OS message loop.
     bool canWait = (msg_queue.empty() &&
-               redrawState == RedrawState::Normal &&
-               !Timer::haveRunningTimers());
+                    redrawState == RedrawState::Normal &&
+                    !Timer::haveRunningTimers());
 
     if (canWait && used_msg_queue.empty())
       collectGarbage();
@@ -636,96 +637,6 @@ void Manager::handleMouseMove(const gfx::Point &mousePos,
           mouseButtons,
           modifiers));
 }
-
-//**
-// void Manager::handleMouseAction(const gfx::Point &mousePos,
-//                                MouseButtons mouseButtons,
-//                                KeyModifiers modifiers,
-//                                PointerType pointerType,
-//                                string actionType)
-// {
-//   if (actionType=="MouseDown"){
-//       handleWindowZOrder();
-//       message=kMouseDownMessage;
-//   }
-//   else if(actionType=="MouseUp"){
-//       message=kMouseUpMessage;
-//   }
-//   else if(actionType=="MouseDoubleClick"){
-//       message=kDoubleClickMessage;
-//   }
-//   enqueueMessage(newMouseMessage(
-//       message,
-//       (capture_widget ? capture_widget : mouse_widget),
-//       mousePos,
-//       pointerType,
-//       mouseButtons,
-//       modifiers));
-// }
-
-//**
-
-// void Manager::handleMouseDown(const gfx::Point &mousePos,
-//                               MouseButtons mouseButtons,
-//                               KeyModifiers modifiers,
-//                               PointerType pointerType)
-// {
-//   handleWindowZOrder();
-
-//   enqueueMessage(
-//       newMouseMessage(
-//           kMouseDownMessage,
-//           (capture_widget ? capture_widget : mouse_widget),
-//           mousePos,
-//           pointerType,
-//           mouseButtons,
-//           modifiers));
-// }
-
-// void Manager::handleMouseUp(const gfx::Point &mousePos,
-//                             MouseButtons mouseButtons,
-//                             KeyModifiers modifiers,
-//                             PointerType pointerType)
-// {
-//   enqueueMessage(
-//       newMouseMessage(
-//           kMouseUpMessage,
-//           (capture_widget ? capture_widget : mouse_widget),
-//           mousePos,
-//           pointerType,
-//           mouseButtons,
-//           modifiers));
-// }
-
-// void Manager::handleMouseDoubleClick(const gfx::Point &mousePos,
-//                                      MouseButtons mouseButtons,
-//                                      KeyModifiers modifiers,
-//                                      PointerType pointerType)
-// {
-//   Widget *dst = (capture_widget ? capture_widget : mouse_widget);
-//   if (dst)
-//   {
-//     enqueueMessage(
-//         newMouseMessage(
-//             kDoubleClickMessage,
-//             dst, mousePos, pointerType,
-//             mouseButtons, modifiers));
-//   }
-// }
-
-// void Manager::handleMouseWheel(const gfx::Point &mousePos,
-//                                MouseButtons mouseButtons,
-//                                KeyModifiers modifiers,
-//                                PointerType pointerType,
-//                                const gfx::Point &wheelDelta,
-//                                bool preciseWheel)
-// {
-//   enqueueMessage(newMouseMessage(
-//       kMouseWheelMessage,
-//       (capture_widget ? capture_widget : mouse_widget),
-//       mousePos, pointerType, mouseButtons, modifiers,
-//       wheelDelta, preciseWheel));
-// }
 
 void Manager::handleTouchMagnify(const gfx::Point &mousePos,
                                  const KeyModifiers modifiers,
@@ -2078,82 +1989,83 @@ bool Manager::processFocusMovementMessage(Message *msg)
 
     return ret;
   }
+}
 
-  static int count_widgets_accept_focus(Widget * widget)
+static int count_widgets_accept_focus(Widget *widget)
+{
+  int count = 0;
+
+  for (auto child : widget->children())
+    count += count_widgets_accept_focus(child);
+
+  if ((count == 0) && (does_accept_focus(widget)))
+    count++;
+
+  return count;
+}
+
+static bool child_accept_focus(Widget *widget, bool first)
+{
+  for (auto child : widget->children())
+    if (child_accept_focus(child, false))
+      return true;
+
+  return (first ? false : does_accept_focus(widget));
+}
+
+static Widget *next_widget(Widget *widget)
+{
+  if (!widget->children().empty())
+    return UI_FIRST_WIDGET(widget->children());
+
+  while (widget->parent() &&
+         widget->parent()->type() != kManagerWidget)
   {
-    int count = 0;
+    WidgetsList::const_iterator begin = widget->parent()->children().begin();
+    WidgetsList::const_iterator end = widget->parent()->children().end();
+    WidgetsList::const_iterator it = std::find(begin, end, widget);
 
-    for (auto child : widget->children())
-      count += count_widgets_accept_focus(child);
+    ASSERT(it != end);
 
-    if ((count == 0) && (does_accept_focus(widget)))
-      count++;
-
-    return count;
+    if ((it + 1) != end)
+      return *(it + 1);
+    else
+      widget = widget->parent();
   }
 
-  static bool child_accept_focus(Widget * widget, bool first)
-  {
-    for (auto child : widget->children())
-      if (child_accept_focus(child, false))
-        return true;
+  return NULL;
+}
 
-    return (first ? false : does_accept_focus(widget));
-  }
+static int cmp_left(Widget *widget, int x, int y)
+{
+  int z = x - (widget->bounds().x + widget->bounds().w / 2);
+  if (z <= 0)
+    return std::numeric_limits<int>::max();
+  return z + ABS((widget->bounds().y + widget->bounds().h / 2) - y) * 8;
+}
 
-  static Widget *next_widget(Widget * widget)
-  {
-    if (!widget->children().empty())
-      return UI_FIRST_WIDGET(widget->children());
+static int cmp_right(Widget *widget, int x, int y)
+{
+  int z = (widget->bounds().x + widget->bounds().w / 2) - x;
+  if (z <= 0)
+    return std::numeric_limits<int>::max();
+  return z + ABS((widget->bounds().y + widget->bounds().h / 2) - y) * 8;
+}
 
-    while (widget->parent() &&
-           widget->parent()->type() != kManagerWidget)
-    {
-      WidgetsList::const_iterator begin = widget->parent()->children().begin();
-      WidgetsList::const_iterator end = widget->parent()->children().end();
-      WidgetsList::const_iterator it = std::find(begin, end, widget);
+static int cmp_up(Widget *widget, int x, int y)
+{
+  int z = y - (widget->bounds().y + widget->bounds().h / 2);
+  if (z <= 0)
+    return std::numeric_limits<int>::max();
+  return z + ABS((widget->bounds().x + widget->bounds().w / 2) - x) * 8;
+}
 
-      ASSERT(it != end);
-
-      if ((it + 1) != end)
-        return *(it + 1);
-      else
-        widget = widget->parent();
-    }
-
-    return NULL;
-  }
-
-  static int cmp_left(Widget * widget, int x, int y)
-  {
-    int z = x - (widget->bounds().x + widget->bounds().w / 2);
-    if (z <= 0)
-      return std::numeric_limits<int>::max();
-    return z + ABS((widget->bounds().y + widget->bounds().h / 2) - y) * 8;
-  }
-
-  static int cmp_right(Widget * widget, int x, int y)
-  {
-    int z = (widget->bounds().x + widget->bounds().w / 2) - x;
-    if (z <= 0)
-      return std::numeric_limits<int>::max();
-    return z + ABS((widget->bounds().y + widget->bounds().h / 2) - y) * 8;
-  }
-
-  static int cmp_up(Widget * widget, int x, int y)
-  {
-    int z = y - (widget->bounds().y + widget->bounds().h / 2);
-    if (z <= 0)
-      return std::numeric_limits<int>::max();
-    return z + ABS((widget->bounds().x + widget->bounds().w / 2) - x) * 8;
-  }
-
-  static int cmp_down(Widget * widget, int x, int y)
-  {
-    int z = (widget->bounds().y + widget->bounds().h / 2) - y;
-    if (z <= 0)
-      return std::numeric_limits<int>::max();
-    return z + ABS((widget->bounds().x + widget->bounds().w / 2) - x) * 8;
-  }
+static int cmp_down(Widget *widget, int x, int y)
+{
+  int z = (widget->bounds().y + widget->bounds().h / 2) - y;
+  if (z <= 0)
+    return std::numeric_limits<int>::max();
+  return z + ABS((widget->bounds().x + widget->bounds().w / 2) - x) * 8;
+}
 
 } // namespace ui
