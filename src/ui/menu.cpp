@@ -378,75 +378,7 @@ bool MenuBox::onProcessMessage(Message* msg)
     case kMouseDownMessage:
     case kDoubleClickMessage:
       if (menu) {
-        ASSERT(menu->parent() == this);
-
-        if (get_base(this)->is_processing)
-          break;
-
-        gfx::Point mousePos = static_cast<MouseMessage*>(msg)->position();
-
-        // Here we catch the filtered messages (menu-bar or the
-        // popuped menu-box) to detect if the user press outside of
-        // the widget
-        if (msg->type() == kMouseDownMessage && m_base != NULL) {
-          Widget* picked = manager()->pick(mousePos);
-
-          // If one of these conditions are accomplished we have to
-          // close all menus (back to menu-bar or close the popuped
-          // menubox), this is the place where we control if...
-          if (picked == NULL ||         // If the button was clicked nowhere
-              picked == this ||         // If the button was clicked in this menubox
-              // The picked widget isn't from the same tree of menus
-              (get_base_menubox(picked) != this ||
-               (this->type() == kMenuBarWidget &&
-                picked->type() == kMenuWidget))) {
-
-            // The user click outside all the menu-box/menu-items, close all
-            menu->closeAll();
-            return true;
-          }
-        }
-
-        // Get the widget below the mouse cursor
-        Widget* picked = menu->pick(mousePos);
-        if (picked) {
-          if ((picked->type() == kMenuItemWidget) &&
-              !(picked->hasFlags(DISABLED))) {
-            MenuItem* pickedItem = static_cast<MenuItem*>(picked);
-
-            // If the picked menu-item is not highlighted...
-            if (!pickedItem->isHighlighted()) {
-              // In menu-bar always open the submenu, in other popup-menus
-              // open the submenu only if the user does click
-              bool open_submenu =
-                (this->type() == kMenuBarWidget) ||
-                (msg->type() == kMouseDownMessage);
-
-              menu->highlightItem(pickedItem, false, open_submenu, false);
-            }
-            // If the user pressed in a highlighted menu-item (maybe
-            // the user was waiting for the timer to open the
-            // submenu...)
-            else if (msg->type() == kMouseDownMessage &&
-                     pickedItem->hasSubmenu()) {
-              pickedItem->stopTimer();
-
-              // If the submenu is closed, open it
-              if (!pickedItem->hasSubmenuOpened())
-                pickedItem->openSubmenu(false);
-              else if (pickedItem->inBar()) {
-                pickedItem->getSubmenu()->closeAll();
-
-                // Set this flag to false so the submenu is not open
-                // again on kMouseMoveMessage.
-                get_base(this)->was_clicked = false;
-              }
-            }
-          }
-          else if (!get_base(this)->was_clicked) {
-            menu->unhighlightItem();
-          }
-        }
+        kDoubleClickMessageCaseHelper();
       }
       break;
 
@@ -479,55 +411,7 @@ bool MenuBox::onProcessMessage(Message* msg)
 
     case kKeyDownMessage:
       if (menu) {
-        MenuItem* selected;
-
-        if (get_base(this)->is_processing)
-          break;
-
-        get_base(this)->was_clicked = false;
-
-        // Check for ALT+some underlined letter
-        if (((this->type() == kMenuBoxWidget) && (msg->modifiers() == kKeyNoneModifier || // <-- Inside menu-boxes we can use letters without Alt modifier pressed
-                                                  msg->modifiers() == kKeyAltModifier)) ||
-            ((this->type() == kMenuBarWidget) && (msg->modifiers() == kKeyAltModifier))) {
-          auto keymsg = static_cast<KeyMessage*>(msg);
-          selected = check_for_letter(menu, keymsg);
-          if (selected) {
-            menu->highlightItem(selected, true, true, true);
-            return true;
-          }
-        }
-
-        // Highlight movement with keyboard
-        if (this->hasFocus()) {
-          MenuItem* highlight = menu->getHighlightedItem();
-          MenuItem* child_with_submenu_opened = NULL;
-          bool used = false;
-
-          // Search a child with highlight or the submenu opened
-          for (auto child : menu->children()) {
-            if (child->type() != kMenuItemWidget)
-              continue;
-
-            if (static_cast<MenuItem*>(child)->hasSubmenuOpened())
-              child_with_submenu_opened = static_cast<MenuItem*>(child);
-          }
-
-          if (!highlight && child_with_submenu_opened)
-            highlight = child_with_submenu_opened;
-
-          //Extracted nested switch to another function.
-          used = onProcessMessageSwitch(static_cast<KeyMessage*>(msg)->scancode());
-
-          // Return true if we've already consumed the key.
-          if (used) {
-            return true;
-          }
-          // If the user presses the ALT key we close everything.
-          else if (static_cast<KeyMessage*>(msg)->scancode() == kKeyAlt) {
-            cancelMenuLoop();
-          }
-        }
+        return kKeyDownMessageCaseHelper();
       }
       break;
 
@@ -540,6 +424,130 @@ bool MenuBox::onProcessMessage(Message* msg)
   }
 
   return Widget::onProcessMessage(msg);
+}
+
+void MenuBox::kDoubleClickMessageCaseHelper() {
+  ASSERT(menu->parent() == this);
+
+  if (get_base(this)->is_processing)
+    break;
+
+  gfx::Point mousePos = static_cast<MouseMessage*>(msg)->position();
+
+  // Here we catch the filtered messages (menu-bar or the
+  // popuped menu-box) to detect if the user press outside of
+  // the widget
+  if (msg->type() == kMouseDownMessage && m_base != NULL) {
+    Widget* picked = manager()->pick(mousePos);
+
+    // If one of these conditions are accomplished we have to
+    // close all menus (back to menu-bar or close the popuped
+    // menubox), this is the place where we control if...
+    if (picked == NULL ||         // If the button was clicked nowhere
+        picked == this ||         // If the button was clicked in this menubox
+        // The picked widget isn't from the same tree of menus
+        (get_base_menubox(picked) != this ||
+          (this->type() == kMenuBarWidget &&
+          picked->type() == kMenuWidget))) {
+
+      // The user click outside all the menu-box/menu-items, close all
+      menu->closeAll();
+      return true;
+    }
+  }
+
+  // Get the widget below the mouse cursor
+  Widget* picked = menu->pick(mousePos);
+  if (picked) {
+    if ((picked->type() == kMenuItemWidget) &&
+        !(picked->hasFlags(DISABLED))) {
+      MenuItem* pickedItem = static_cast<MenuItem*>(picked);
+
+      // If the picked menu-item is not highlighted...
+      if (!pickedItem->isHighlighted()) {
+        // In menu-bar always open the submenu, in other popup-menus
+        // open the submenu only if the user does click
+        bool open_submenu =
+          (this->type() == kMenuBarWidget) ||
+          (msg->type() == kMouseDownMessage);
+
+        menu->highlightItem(pickedItem, false, open_submenu, false);
+      }
+      // If the user pressed in a highlighted menu-item (maybe
+      // the user was waiting for the timer to open the
+      // submenu...)
+      else if (msg->type() == kMouseDownMessage &&
+                pickedItem->hasSubmenu()) {
+        pickedItem->stopTimer();
+
+        // If the submenu is closed, open it
+        if (!pickedItem->hasSubmenuOpened())
+          pickedItem->openSubmenu(false);
+        else if (pickedItem->inBar()) {
+          pickedItem->getSubmenu()->closeAll();
+
+          // Set this flag to false so the submenu is not open
+          // again on kMouseMoveMessage.
+          get_base(this)->was_clicked = false;
+        }
+      }
+    }
+    else if (!get_base(this)->was_clicked) {
+      menu->unhighlightItem();
+    }
+  }
+}
+
+boolean kKeyDownMessageCaseHelper() {
+  MenuItem* selected;
+
+  if (get_base(this)->is_processing)
+    break;
+
+  get_base(this)->was_clicked = false;
+
+  // Check for ALT+some underlined letter
+  if (((this->type() == kMenuBoxWidget) && (msg->modifiers() == kKeyNoneModifier || // <-- Inside menu-boxes we can use letters without Alt modifier pressed
+                                            msg->modifiers() == kKeyAltModifier)) ||
+      ((this->type() == kMenuBarWidget) && (msg->modifiers() == kKeyAltModifier))) {
+    auto keymsg = static_cast<KeyMessage*>(msg);
+    selected = check_for_letter(menu, keymsg);
+    if (selected) {
+      menu->highlightItem(selected, true, true, true);
+      return true;
+    }
+  }
+
+  // Highlight movement with keyboard
+  if (this->hasFocus()) {
+    MenuItem* highlight = menu->getHighlightedItem();
+    MenuItem* child_with_submenu_opened = NULL;
+    bool used = false;
+
+    // Search a child with highlight or the submenu opened
+    for (auto child : menu->children()) {
+      if (child->type() != kMenuItemWidget)
+        continue;
+
+      if (static_cast<MenuItem*>(child)->hasSubmenuOpened())
+        child_with_submenu_opened = static_cast<MenuItem*>(child);
+    }
+
+    if (!highlight && child_with_submenu_opened)
+      highlight = child_with_submenu_opened;
+
+    //Extracted nested switch to another function.
+    used = onProcessMessageSwitch(static_cast<KeyMessage*>(msg)->scancode());
+
+    // Return true if we've already consumed the key.
+    if (used) {
+      return true;
+    }
+    // If the user presses the ALT key we close everything.
+    else if (static_cast<KeyMessage*>(msg)->scancode() == kKeyAlt) {
+      cancelMenuLoop();
+    }
+  }
 }
 
 boolean MenuBox::onProcessMessageSwitch(KeyMessage* tempKey) {
