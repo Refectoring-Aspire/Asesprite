@@ -61,6 +61,7 @@ namespace ui {
   protected:
     // Events
     bool onProcessMessage(Message* msg) override;
+    bool captureMouseMovement();
     void onSizeHint(SizeHintEvent& ev) override;
     void onPaint(PaintEvent& ev) override;
     void onSetText() override;
