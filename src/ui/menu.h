@@ -144,6 +144,8 @@ namespace ui {
     bool inBar();
 
   private:
+    boolean kOpenMenuItemMessageFunction();
+    boolean kCloseMenuItemMessageFunction();
     void openSubmenu(bool select_first);
     void closeSubmenu(bool last_of_close_chain);
     void startTimer();
