@@ -80,6 +80,9 @@ namespace ui {
     MenuBaseData* createBase();
 
   private:
+    void kDoubleClickMessageCaseHelper();
+    boolean kKeyDownMessageCaseHelper();
+    boolean onProcessMessageSwitch();
     void closePopup();
     void startFilteringMouseDown();
     void stopFilteringMouseDown();
@@ -143,6 +146,8 @@ namespace ui {
     bool inBar();
 
   private:
+    boolean kOpenMenuItemMessageFunction();
+    boolean kCloseMenuItemMessageFunction();
     void openSubmenu(bool select_first);
     void closeSubmenu(bool last_of_close_chain);
     void startTimer();
