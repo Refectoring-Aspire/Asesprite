@@ -87,6 +87,13 @@ namespace ui {
     bool isFocusMovementMessage(Message* msg);
     bool processFocusMovementMessage(Message* msg);
 
+
+    //**new functions
+    void createList(vector<Widget *> list, Widget *it);
+    void checkKeyPressed();
+    void checkEventType(Event osEvent);
+
+
     // Returns the invalid region in the screen to being updated with
     // PaintMessages. This region is cleared when each widget receives
     // a paint message.
@@ -177,6 +184,10 @@ namespace ui {
 
     // Current pressed buttons.
     MouseButtons m_mouseButtons;
+
+
+
+
   };
 
 } // namespace ui
