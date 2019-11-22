@@ -220,6 +220,37 @@ gfx::Rect Entry::getEntryTextBounds() const
   return onGetEntryTextBounds();
 }
 
+bool Entry::captureMouseMovement(){
+  bool is_dirty = false;
+        int c = getCaretFromMouse(static_cast<MouseMessage*>(msg));
+
+        if (static_cast<MouseMessage*>(msg)->left() || !isPosInSelection(c)) {
+          // Move caret
+          if (m_caret != c) {
+            setCaretPos(c);
+            is_dirty = true;
+            invalidate();
+          }
+
+          // Move selection
+          if (m_recent_focused) {
+            m_recent_focused = false;
+            m_select = m_caret;
+          }
+          else if (msg->type() == kMouseDownMessage)
+            m_select = m_caret;
+        }
+
+        // Show the caret
+        if (is_dirty) {
+          if (shouldStartTimer(true))
+            m_timer.start();
+          m_state = true;
+        }
+
+        return true;
+}
+
 bool Entry::onProcessMessage(Message* msg)
 {
   switch (msg->type()) {
@@ -275,7 +306,7 @@ bool Entry::onProcessMessage(Message* msg)
         KeyScancode scancode = keymsg->scancode();
 			// keyscancode
 			
-		  cmd = keyscancode(scancode)
+		  cmd = keyscancode(scancode);
         
             // Map common macOS/Windows shortcuts for Cut/Copy/Paste/Select all
 
@@ -322,7 +353,7 @@ bool Entry::onProcessMessage(Message* msg)
       executeCmd(cmd, keymsg->unicodeChar(),
                   (msg->shiftPressed()) ? true: false);
       return true;
-        }
+        
         break;
 
     case kMouseDownMessage:
@@ -330,34 +361,7 @@ bool Entry::onProcessMessage(Message* msg)
 
     case kMouseMoveMessage:
       if (hasCapture()) {
-        bool is_dirty = false;
-        int c = getCaretFromMouse(static_cast<MouseMessage*>(msg));
-
-        if (static_cast<MouseMessage*>(msg)->left() || !isPosInSelection(c)) {
-          // Move caret
-          if (m_caret != c) {
-            setCaretPos(c);
-            is_dirty = true;
-            invalidate();
-          }
-
-          // Move selection
-          if (m_recent_focused) {
-            m_recent_focused = false;
-            m_select = m_caret;
-          }
-          else if (msg->type() == kMouseDownMessage)
-            m_select = m_caret;
-        }
-
-        // Show the caret
-        if (is_dirty) {
-          if (shouldStartTimer(true))
-            m_timer.start();
-          m_state = true;
-        }
-
-        return true;
+       return captureMouseMovement();
       }
       break;
 
@@ -395,7 +399,7 @@ bool Entry::onProcessMessage(Message* msg)
 }
 
 
-void entry::keyscancode(const std::string& scancode){
+std::string  Entry::keyscancode(std::string scancode){
 	  switch (scancode) {
 
       case kKeyLeft:

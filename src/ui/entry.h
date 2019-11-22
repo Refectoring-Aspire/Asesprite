@@ -9,7 +9,9 @@
 #define UI_ENTRY_H_INCLUDED
 #pragma once
 
-#include "obs/signal.h"
+
+//include bad
+//#include "obs/signal.h"
 #include "ui/timer.h"
 #include "ui/widget.h"
 
@@ -39,7 +41,7 @@ namespace ui {
     void selectAllText();
     void deselectText();
     std::string selectedText() const;
-
+    std::string keyscancode();
     void setSuffix(const std::string& suffix);
     const std::string& getSuffix() { return m_suffix; }
 
@@ -59,6 +61,7 @@ namespace ui {
   protected:
     // Events
     bool onProcessMessage(Message* msg) override;
+    bool captureMouseMovement();
     void onSizeHint(SizeHintEvent& ev) override;
     void onPaint(PaintEvent& ev) override;
     void onSetText() override;
