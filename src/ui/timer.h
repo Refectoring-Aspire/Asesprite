@@ -8,7 +8,7 @@
 #define UI_TIMER_H_INCLUDED
 #pragma once
 
-#include "base/disable_copying.h"
+//#include "base/disable_copying.h"
 #include "base/time.h"
 #include "obs/signal.h"
 

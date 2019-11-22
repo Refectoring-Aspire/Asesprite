@@ -275,7 +275,7 @@ bool Entry::onProcessMessage(Message* msg)
         KeyScancode scancode = keymsg->scancode();
 			// keyscancode
 			
-		  cmd = keyscancode(scancode)
+		  cmd = keyscancode(scancode);
         
             // Map common macOS/Windows shortcuts for Cut/Copy/Paste/Select all
 
@@ -395,7 +395,7 @@ bool Entry::onProcessMessage(Message* msg)
 }
 
 
-void entry::keyscancode(const std::string& scancode){
+std::string  Entry::keyscancode(std::string scancode){
 	  switch (scancode) {
 
       case kKeyLeft:
