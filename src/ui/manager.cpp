@@ -1255,12 +1255,8 @@ bool Manager::onProcessMessage(Message *msg)
       win = static_cast<Window *>(manchild);
 
       //**new fucntion
-      // sendToWindow(win);
+      sendToWindow(win);
       //**new fucntion
-      // Send to the window.
-      for (auto winchild : win->children())
-        if (winchild->sendMessage(msg))
-          return true;
 
       if (win->isForeground() ||
           win->isDesktop())
@@ -1278,6 +1274,14 @@ bool Manager::onProcessMessage(Message *msg)
   }
 
   return Widget::onProcessMessage(msg);
+}
+
+boolean Manager::sendToWindow(Window *win)
+{
+  // Send to the window.
+  for (auto winchild : win->children())
+    if (winchild->sendMessage(msg))
+      return true;
 }
 
 void Manager::onResize(ResizeEvent &ev)

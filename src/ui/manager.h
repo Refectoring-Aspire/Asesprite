@@ -92,6 +92,7 @@ namespace ui {
     void createList(vector<Widget *> list, Widget *it);
     void checkKeyPressed();
     void checkEventType(Event osEvent);
+    boolean sendToWindow(Window *win);
 
 
     // Returns the invalid region in the screen to being updated with
@@ -127,31 +128,31 @@ namespace ui {
                                   KeyModifiers modifiers,
                                   PointerType pointerType);
     void generateMessagesFromOSEvents();
-    void handleMouseMove(const gfx::Point& mousePos,
-                         MouseButtons mouseButtons,
-                         KeyModifiers modifiers,
-                         PointerType pointerType);
-    void handleMouseDown(const gfx::Point& mousePos,
-                         MouseButtons mouseButtons,
-                         KeyModifiers modifiers,
-                         PointerType pointerType);
-    void handleMouseUp(const gfx::Point& mousePos,
-                       MouseButtons mouseButtons,
-                       KeyModifiers modifiers,
-                       PointerType pointerType);
-    void handleMouseDoubleClick(const gfx::Point& mousePos,
-                                MouseButtons mouseButtons,
-                                KeyModifiers modifiers,
-                                PointerType pointerType);
-    void handleMouseWheel(const gfx::Point& mousePos,
-                          MouseButtons mouseButtons,
-                          KeyModifiers modifiers,
-                          PointerType pointerType,
-                          const gfx::Point& wheelDelta,
-                          bool preciseWheel);
-    void handleTouchMagnify(const gfx::Point& mousePos,
-                            const KeyModifiers modifiers,
-                            const double magnification);
+    // void handleMouseMove(const gfx::Point& mousePos,
+    //                      MouseButtons mouseButtons,
+    //                      KeyModifiers modifiers,
+    //                      PointerType pointerType);
+    // void handleMouseDown(const gfx::Point& mousePos,
+    //                      MouseButtons mouseButtons,
+    //                      KeyModifiers modifiers,
+    //                      PointerType pointerType);
+    // void handleMouseUp(const gfx::Point& mousePos,
+    //                    MouseButtons mouseButtons,
+    //                    KeyModifiers modifiers,
+    //                    PointerType pointerType);
+    // void handleMouseDoubleClick(const gfx::Point& mousePos,
+    //                             MouseButtons mouseButtons,
+    //                             KeyModifiers modifiers,
+    //                             PointerType pointerType);
+    // void handleMouseWheel(const gfx::Point& mousePos,
+    //                       MouseButtons mouseButtons,
+    //                       KeyModifiers modifiers,
+    //                       PointerType pointerType,
+    //                       const gfx::Point& wheelDelta,
+    //                       bool preciseWheel);
+    // void handleTouchMagnify(const gfx::Point& mousePos,
+    //                         const KeyModifiers modifiers,
+    //                         const double magnification);
     void handleWindowZOrder();
 
     int pumpQueue();
