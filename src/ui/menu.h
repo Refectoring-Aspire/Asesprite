@@ -80,6 +80,7 @@ namespace ui {
     MenuBaseData* createBase();
 
   private:
+    boolean onProcessMessageSwitch();
     void closePopup();
     void startFilteringMouseDown();
     void stopFilteringMouseDown();
