@@ -1852,7 +1852,7 @@ void Manager::createList(vector<Widget *> list, Widget *it)
     list.push_back(it);
 }
 
-void Manager::checkKeyPressed()
+void Manager::checkKeyPressed(Message *msg, Widget *focus)
 {
   // Depending on the pressed key...
   switch (static_cast<KeyMessage *>(msg)->scancode())
@@ -1986,7 +1986,7 @@ bool Manager::processFocusMovementMessage(Message *msg)
     }
 
     //**new function // Depending on the pressed key...
-    checkKeyPressed();
+    checkKeyPressed(msg, focus);
 
     if ((focus) && (focus != focus_widget))
       setFocus(focus);
